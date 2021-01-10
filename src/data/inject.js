@@ -1,10 +1,10 @@
 'use strict';
 
 const script = document.createElement('script');
-script.addEventListener('change', () => chrome.runtime.emit({
+script.addEventListener('change', () => chrome.runtime.sendMessage({
   method: 'change'
 }));
-script.addEventListener('check', () => chrome.runtime.emit({
+script.addEventListener('check', () => chrome.runtime.sendMessage({
   method: 'check'
 }));
 script.textContent = `
@@ -38,6 +38,7 @@ script.textContent = `
     document.addEventListener('mozvisibilitychange', block, true);
     document.addEventListener('blur', block, true);
     window.addEventListener('blur', block, true);
+    window.addEventListener('mouseleave', block, true);
 
     if (/Firefox/.test(navigator.userAgent)) {
       Object.defineProperty(document, 'mozHidden', {

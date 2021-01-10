@@ -18,32 +18,24 @@
   else if ((hidden = 'webkitHidden') in document) {
     document.addEventListener('webkitvisibilitychange', onchange);
   }
-  else if ((hidden = 'msHidden') in document) {
-    document.addEventListener('msvisibilitychange', onchange);
-  }
-  // IE 9 and lower:
-  else if ('onfocusin' in document) {
-    document.onfocusin = document.onfocusout = onchange;
-  }
-  // All others:
-  else {
-    window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
-  }
+
+
+  document.onfocusin = document.onfocusout = document.onmouseleave = window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
 
   function onchange(evt) {
     const v = 'visible';
     const h = 'hidden';
     const evtMap = {
-      focus: v, focusin: v, pageshow: v, blur: h, focusout: h, pagehide: h
+      focus: v, focusin: v, pageshow: v, blur: h, focusout: h, pagehide: h, mouseleave: h
     };
 
     evt = evt || window.event;
     if (evt.type in evtMap) {
-      console.log(evt.type);
+      console.log(evt.type, 'fired');
       document.body.className = evtMap[evt.type];
     }
     else {
-      console.log(this[hidden]);
+      console.log('visibility state', this[hidden]);
       document.body.className = this[hidden] ? 'hidden' : 'visible';
     }
   }
@@ -55,14 +47,14 @@
 })();
 
 document.addEventListener('visibilitychange', e => {
-  console.log('visibilitychange event', e);
+  console.log('visibilitychange event', e.type);
 });
 document.addEventListener('webkitvisibilitychange', e => {
-  console.log('webkitvisibilitychange event', e);
+  console.log('webkitvisibilitychange event', e.type);
 });
 
 document.addEventListener('mozvisibilitychange', e => {
-  console.log('mozvisibilitychange event', e);
+  console.log('mozvisibilitychange event', e.type);
 });
 window.onpageshow = () => console.log('onpageshow is called', new Date());
 window.onpagehide = () => console.log('onpagehide is called');

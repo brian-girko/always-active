@@ -36,10 +36,6 @@ script.textContent = `
     document.addEventListener('visibilitychange', block, true);
     document.addEventListener('webkitvisibilitychange', block, true);
     document.addEventListener('mozvisibilitychange', block, true);
-    document.addEventListener('blur', block, true);
-    window.addEventListener('blur', block, true);
-    window.addEventListener('mouseleave', block, true);
-
     if (/Firefox/.test(navigator.userAgent)) {
       Object.defineProperty(document, 'mozHidden', {
         get() {
@@ -56,7 +52,25 @@ script.textContent = `
         }
       });
     }
+    document.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
+    window.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
+    window.addEventListener('mouseleave', e => script.dataset.mouseleave !== 'false' && block(e), true);
   }
 `;
 document.documentElement.appendChild(script);
 script.remove();
+chrome.storage.local.get({
+  'blur': true,
+  'mouseleave': true
+}, prefs => {
+  script.dataset.blur = prefs.blur;
+  script.dataset.mouseleave = prefs.mouseleave;
+});
+chrome.storage.onChanged.addListener(prefs => {
+  if (prefs.blur) {
+    script.dataset.blur = prefs.blur.newValue;
+  }
+  if (prefs.mouseleave) {
+    script.dataset.mouseleave = prefs.mouseleave.newValue;
+  }
+});

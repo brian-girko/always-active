@@ -31,5 +31,9 @@
     "js": [
       "data/inject.js"
     ]
-  }]
+  }],
+  "options_ui": {
+    "page": "data/options/index.html",
+    "chrome_style": true
+  }
 }

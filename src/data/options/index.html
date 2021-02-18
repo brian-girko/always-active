@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>Always active Window - Always Visible :: Options Page</title>
   <style type="text/css">
@@ -8,12 +9,14 @@
       grid-template-columns: min-content 1fr;
       grid-gap: 10px;
     }
+
     .disabled {
       opacity: 0.4;
       pointer-events: none;
     }
   </style>
 </head>
+
 <body>
   <div class="grid">
     <input class="disabled" type="checkbox" id="visibilityState">
@@ -22,6 +25,8 @@
     <label class="disabled" for="hidden">Overwrite "document.hidden"</label>
     <input type="checkbox" id="blur">
     <label for="blur">Block "blur" event</label>
+    <input type="checkbox" id="focus">
+    <label for="focus">Block "focus" event</label>
     <input type="checkbox" id="mouseleave">
     <label for="mouseleave">Block "mouseleave" event</label>
   </div>
@@ -34,4 +39,5 @@
     <script type="text/javascript" src="index.js"></script>
   </p>
 </body>
+
 </html>

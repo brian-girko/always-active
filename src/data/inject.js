@@ -54,22 +54,29 @@ script.textContent = `
       });
     }
     document.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
+    document.addEventListener('focus', e => script.dataset.focus !== 'false' && block(e), true);
     window.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
     window.addEventListener('mouseleave', e => script.dataset.mouseleave !== 'false' && block(e), true);
+    window.addEventListener('focus', e => script.dataset.focus !== 'false' && block(e), true);
   }
 `;
 document.documentElement.appendChild(script);
 script.remove();
 chrome.storage.local.get({
   'blur': true,
-  'mouseleave': true
+  'mouseleave': true,
+  'focus': true
 }, prefs => {
   script.dataset.blur = prefs.blur;
   script.dataset.mouseleave = prefs.mouseleave;
+  script.dataset.focus = prefs.focus;
 });
 chrome.storage.onChanged.addListener(prefs => {
   if (prefs.blur) {
     script.dataset.blur = prefs.blur.newValue;
+  }
+  if (prefs.focus) {
+    script.dataset.focus = prefs.focus.newValue;
   }
   if (prefs.mouseleave) {
     script.dataset.mouseleave = prefs.mouseleave.newValue;

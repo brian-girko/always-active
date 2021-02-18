@@ -23,15 +23,19 @@
       "background.js"
     ]
   },
-  "content_scripts": [{
-    "matches": ["<all_urls>"],
-    "run_at": "document_start",
-    "all_frames": true,
-    "match_about_blank": true,
-    "js": [
-      "data/inject.js"
-    ]
-  }],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "run_at": "document_start",
+      "all_frames": true,
+      "match_about_blank": true,
+      "js": [
+        "data/inject.js"
+      ]
+    }
+  ],
   "options_ui": {
     "page": "data/options/index.html",
     "chrome_style": true

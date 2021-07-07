@@ -1,0 +1,5 @@
+{
+  "description": {
+    "message": "Pretend that all browser windows are active by spoofing the visibility state event and more!"
+  }
+}

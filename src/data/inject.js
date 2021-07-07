@@ -56,6 +56,7 @@ script.textContent = `
     document.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
     window.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
     window.addEventListener('mouseleave', e => script.dataset.mouseleave !== 'false' && block(e), true);
+    console.log(123);
   }
 `;
 document.documentElement.appendChild(script);

@@ -1,6 +1,8 @@
 'use strict';
 
-const log = (...args) => localStorage.getItem('log') === 'true' && console.log(args);
+const log = (...args) => chrome.storage.local.get({
+  log: false
+}, prefs => prefs.log && console.log(...args));
 
 chrome.runtime.onMessage.addListener((request, sender) => {
   if (request.method === 'check') {

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Always active Window - Always Visible :: Options Page</title>
+  <style type="text/css">
+    .grid {
+      display: grid;
+      grid-template-columns: min-content 1fr;
+      grid-gap: 10px;
+    }
+    .disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid">
+    <input class="disabled" type="checkbox" id="visibilityState">
+    <label class="disabled" for="visibilityState">Overwrite "document.visibilityState"</label>
+    <input class="disabled" type="checkbox" id="hidden">
+    <label class="disabled" for="hidden">Overwrite "document.hidden"</label>
+    <input type="checkbox" id="blur">
+    <label for="blur">Block "blur" event</label>
+    <input type="checkbox" id="mouseleave">
+    <label for="mouseleave">Block "mouseleave" event</label>
+  </div>
+  <p>
+    <input type="button" id="reset" value="Factory Reset">
+    <input type="button" id="support" value="Support Development">
+    <input type="button" id="save" value="Save">
+    <span id="toast"></span>
+
+    <script type="text/javascript" src="index.js"></script>
+  </p>
+</body>
+</html>

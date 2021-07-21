@@ -37,6 +37,8 @@ script.textContent = `
     document.addEventListener('webkitvisibilitychange', block, true);
     document.addEventListener('mozvisibilitychange', block, true);
     document.addEventListener('hasFocus', block, true);
+    document.__proto__.hasFocus = function() {return true};
+
     if (/Firefox/.test(navigator.userAgent)) {
       Object.defineProperty(document, 'mozHidden', {
         get() {

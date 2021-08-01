@@ -6,19 +6,25 @@
 </head>
 <body>
   <div class="grid">
-    <input class="disabled" type="checkbox" id="visibilityState">
     <label class="disabled" for="visibilityState">Overwrite "document.visibilityState"</label>
-    <input class="disabled" type="checkbox" id="hidden">
+    <input class="disabled" type="checkbox" id="visibilityState">
     <label class="disabled" for="hidden">Overwrite "document.hidden"</label>
+    <input class="disabled" type="checkbox" id="hidden">
+    <label for="blur">Globally block "blur" events</label>
     <input type="checkbox" id="blur">
-    <label for="blur">Block "blur" event</label>
+    <label for="focus">Globally block "focus" events</label>
+    <input type="checkbox" id="focus">
+    <label for="visibility">Globally block "visibility" events</label>
+    <input type="checkbox" id="visibility">
+    <label for="mouseleave">Globally block "mouseleave" events</label>
     <input type="checkbox" id="mouseleave">
-    <label for="mouseleave">Block "mouseleave" event</label>
-    <input type="checkbox" id="log">
     <label for="log">Display logs (for debugging purpose only)</label>
-    <input type="checkbox" id="faqs">
+    <input type="checkbox" id="log">
     <label for="faqs">Open FAQs page on updates (recommended)</label>
+    <input type="checkbox" id="faqs">
   </div>
+  <h1><a data-href="faq6" target="_blank">Policies</a></h1>
+  <textarea id="policies" rows="10" placeholder='A JSON object to prevent blocking of some events that conflict with particular hostnames. e.g.:&#013;&#013;{&#013;  "docs.google.com": ["blur"]&#013;}'></textarea>
   <hr>
   <div>How can I only use this extension only on few websites?</div>
   <div style="margin-top: 5px;">See <a data-href="faq5" target="_blank">FAQ 5</a></div>

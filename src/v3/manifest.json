@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "version": "0.2.1",
+  "version": "0.2.2",
   "name": "Always active Window - Always Visible",
   "description": "__MSG_description__",
   "default_locale": "en",

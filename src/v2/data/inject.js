@@ -1,47 +1,34 @@
 'use strict';
 
 const script = document.createElement('script');
-script.addEventListener('change', () => chrome.runtime.sendMessage({
-  method: 'change'
-}));
-script.addEventListener('check', () => chrome.runtime.sendMessage({
-  method: 'check'
-}));
+
 script.textContent = `{
   const script = document.currentScript;
   const isFirefox = /Firefox/.test(navigator.userAgent) || typeof InstallTrigger !== 'undefined';
 
-  const check = () => script.dispatchEvent(new Event('check'));
   const block = e => {
     e.preventDefault();
     e.stopPropagation();
     e.stopImmediatePropagation();
-
-    check();
   };
 
   /* visibility */
   Object.defineProperty(document, 'visibilityState', {
     get() {
-      check();
       return 'visible';
     }
   });
   document.addEventListener('visibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
-  document.addEventListener('webkitvisibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
-  document.addEventListener('mozvisibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
 
   /* hidden */
   Object.defineProperty(document, 'hidden', {
     get() {
-      check();
       return false;
     }
   });
   if (isFirefox) {
     Object.defineProperty(document, 'mozHidden', {
       get() {
-        check();
         return false;
       }
     });
@@ -49,7 +36,6 @@ script.textContent = `{
   else {
     Object.defineProperty(document, 'webkitHidden', {
       get() {
-        check();
         return false;
       }
     });
@@ -57,7 +43,14 @@ script.textContent = `{
 
   /* focus */
   document.addEventListener('hasFocus', e => script.dataset.focus !== 'false' && block(e), true);
-  document.__proto__.hasFocus = function() {return true};
+  document.__proto__.hasFocus = new Proxy(document.__proto__.hasFocus, {
+    apply(target, self, args) {
+      if (script.dataset.focus !== 'false') {
+        return true;
+      }
+      return Reflect.apply(target, self, args);
+    }
+  });
 
   /* blur */
   document.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);

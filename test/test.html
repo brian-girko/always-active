@@ -19,6 +19,13 @@
   document.addEventListener('webkitvisibilitychange', onchange);
   document.addEventListener('pagehide', onchange);
 
+  Object.defineProperty(document, 'title', {
+    set(v) {
+      console.log(v);
+      console.log(new Error().stack);
+    }
+  });
+
   document.onfocusin = document.onfocusout = document.onmouseleave = window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
 
   function onchange(evt) {
@@ -58,7 +65,7 @@ document.addEventListener('mozvisibilitychange', e => {
 window.onpageshow = () => console.log('onpageshow is called', new Date());
 window.onpagehide = () => console.log('onpagehide is called');
 window.onblur = () => console.log('onblur is called');
-
+console.log('page open');
 </script>
   <a href="test.html">This Page</a>
 </body>

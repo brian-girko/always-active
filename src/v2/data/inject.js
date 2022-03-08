@@ -1,6 +1,10 @@
 'use strict';
 
 const script = document.createElement('script');
+script.dataset.hidden = document.hidden;
+script.addEventListener('state', () => {
+  script.dataset.hidden = document.hidden;
+});
 
 script.textContent = `{
   const script = document.currentScript;
@@ -25,7 +29,12 @@ script.textContent = `{
       }
     });
   }
-  document.addEventListener('visibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
+  document.addEventListener('visibilitychange', e => {
+    script.dispatchEvent(new Event('state'));
+    if (script.dataset.visibility !== 'false') {
+      return block(e);
+    }
+  }, true);
   document.addEventListener('webkitvisibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
   window.addEventListener('pagehide', e => script.dataset.visibility !== 'false' && block(e), true);
 
@@ -63,7 +72,7 @@ script.textContent = `{
   document.addEventListener('blur', onblur, true);
   window.addEventListener('blur', onblur, true);
 
-  /* mouse*/
+  /* mouse */
   window.addEventListener('mouseleave', e => {
     if (script.dataset.mouseleave !== 'false') {
       if (e.target === document || e.target === window) {
@@ -71,6 +80,18 @@ script.textContent = `{
       }
     }
   }, true);
+
+  /* requestAnimationFrame */
+  window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {
+    apply(target, self, args) {
+      if (script.dataset.hidden === 'true') {
+        return setTimeout(args[0]);
+      }
+      else {
+        return Reflect.apply(target, self, args);
+      }
+    }
+  });
 }`;
 document.documentElement.appendChild(script);
 script.remove();

@@ -67,7 +67,9 @@ const update = () => chrome.storage.local.get({
   'mouseleave': true,
   'visibility': true,
   'policies': {
-    'docs.google.com': ['blur']
+    'docs.google.com': ['blur'],
+    'www.youtube.com': ['mouseleave'],
+    'meet.google.com': ['visibility']
   }
 }, prefs => {
   let hostname = location.hostname;

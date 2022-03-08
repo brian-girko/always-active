@@ -10,7 +10,9 @@ chrome.storage.local.get({
   'log': false,
   'faqs': true,
   'policies': {
-    'docs.google.com': ['blur']
+    'docs.google.com': ['blur'],
+    'www.youtube.com': ['mouseleave'],
+    'meet.google.com': ['visibility']
   }
 }, prefs => {
   document.getElementById('visibilityState').checked = prefs.visibilityState;

@@ -9,12 +9,10 @@ chrome.storage.local.get({
   'mouseleave': true,
   'log': false,
   'faqs': true,
-  'policies': {
-    'docs.google.com': ['blur'],
-    'www.youtube.com': ['mouseleave'],
-    'meet.google.com': ['visibility']
-  }
+  'policies': null
 }, prefs => {
+  prefs.policies = prefs.policies ?? {};
+
   document.getElementById('visibilityState').checked = prefs.visibilityState;
   document.getElementById('hidden').checked = prefs.hidden;
   document.getElementById('focus').checked = prefs.focus;
@@ -37,7 +35,7 @@ document.getElementById('save').addEventListener('click', () => {
       'focus': document.getElementById('focus').checked,
       'log': document.getElementById('log').checked,
       'faqs': document.getElementById('faqs').checked,
-      'policies': JSON.parse(document.getElementById('policies').value)
+      'policies': JSON.parse(document.getElementById('policies').value || '{}')
     }, () => {
       toast.textContent = 'Options Saved';
       setTimeout(() => toast.textContent = '', 1000);

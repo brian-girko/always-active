@@ -4,21 +4,20 @@
   <title></title>
 </head>
 <body>
+<textarea id="box" tabindex="0">Sample Div</textarea>
 <script type="text/javascript">
+  document.getElementById('box').addEventListener('mouseleave', () => console.log('mouse out of box'));
+  document.getElementById('box').addEventListener('blur', () => console.log('blur on box'));
+
+
 (function() {
   let hidden = 'hidden';
 
   // Standards:
-  if (hidden in document) {
-    document.addEventListener('visibilitychange', onchange);
-  }
-  else if ((hidden = 'mozHidden') in document) {
-    document.addEventListener('mozvisibilitychange', onchange);
-  }
-  else if ((hidden = 'webkitHidden') in document) {
-    document.addEventListener('webkitvisibilitychange', onchange);
-  }
-
+  document.addEventListener('visibilitychange', onchange);
+  document.addEventListener('mozvisibilitychange', onchange);
+  document.addEventListener('webkitvisibilitychange', onchange);
+  document.addEventListener('pagehide', onchange);
 
   document.onfocusin = document.onfocusout = document.onmouseleave = window.onpageshow = window.onpagehide = window.onfocus = window.onblur = onchange;
 
@@ -47,17 +46,18 @@
 })();
 
 document.addEventListener('visibilitychange', e => {
-  console.log('visibilitychange event', e.type);
+  console.log(e);
 });
 document.addEventListener('webkitvisibilitychange', e => {
-  console.log('webkitvisibilitychange event', e.type);
+  console.log(e);
 });
 
 document.addEventListener('mozvisibilitychange', e => {
-  console.log('mozvisibilitychange event', e.type);
+  console.log(e);
 });
 window.onpageshow = () => console.log('onpageshow is called', new Date());
 window.onpagehide = () => console.log('onpagehide is called');
+window.onblur = () => console.log('onblur is called');
 
 </script>
   <a href="test.html">This Page</a>

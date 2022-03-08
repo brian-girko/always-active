@@ -18,7 +18,16 @@ script.textContent = `{
       return 'visible';
     }
   });
+  if (isFirefox === false) {
+    Object.defineProperty(document, 'webkitVisibilityState', {
+      get() {
+        return 'visible';
+      }
+    });
+  }
   document.addEventListener('visibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
+  document.addEventListener('webkitvisibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
+  window.addEventListener('pagehide', e => script.dataset.visibility !== 'false' && block(e), true);
 
   /* hidden */
   Object.defineProperty(document, 'hidden', {
@@ -26,20 +35,11 @@ script.textContent = `{
       return false;
     }
   });
-  if (isFirefox) {
-    Object.defineProperty(document, 'mozHidden', {
-      get() {
-        return false;
-      }
-    });
-  }
-  else {
-    Object.defineProperty(document, 'webkitHidden', {
-      get() {
-        return false;
-      }
-    });
-  }
+  Object.defineProperty(document, isFirefox ? 'mozHidden' : 'webkitHidden', {
+    get() {
+      return false;
+    }
+  });
 
   /* focus */
   document.addEventListener('hasFocus', e => script.dataset.focus !== 'false' && block(e), true);
@@ -53,11 +53,24 @@ script.textContent = `{
   });
 
   /* blur */
-  document.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
-  window.addEventListener('blur', e => script.dataset.blur !== 'false' && block(e), true);
+  const onblur = e => {
+    if (script.dataset.blur !== 'false') {
+      if (e.target === document || e.target === window) {
+        return block(e);
+      }
+    }
+  };
+  document.addEventListener('blur', onblur, true);
+  window.addEventListener('blur', onblur, true);
 
   /* mouse*/
-  window.addEventListener('mouseleave', e => script.dataset.mouseleave !== 'false' && block(e), true);
+  window.addEventListener('mouseleave', e => {
+    if (script.dataset.mouseleave !== 'false') {
+      if (e.target === document || e.target === window) {
+        return block(e);
+      }
+    }
+  }, true);
 }`;
 document.documentElement.appendChild(script);
 script.remove();
@@ -66,11 +79,7 @@ const update = () => chrome.storage.local.get({
   'focus': true,
   'mouseleave': true,
   'visibility': true,
-  'policies': {
-    'docs.google.com': ['blur'],
-    'www.youtube.com': ['mouseleave'],
-    'meet.google.com': ['visibility']
-  }
+  'policies': null
 }, prefs => {
   let hostname = location.hostname;
   try {
@@ -78,6 +87,7 @@ const update = () => chrome.storage.local.get({
   }
   catch (e) {}
 
+  prefs.policies = prefs.policies ?? {};
   const policy = prefs.policies[hostname] || [];
 
   script.dataset.blur = policy.indexOf('blur') === -1 ? prefs.blur : false;

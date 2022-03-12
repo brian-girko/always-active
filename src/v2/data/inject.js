@@ -86,7 +86,7 @@ script.textContent = `{
   window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {
     apply(target, self, args) {
       if (script.dataset.hidden === 'true') {
-        const currTime = new Date().getTime();
+        const currTime = Date.now();
         const timeToCall = Math.max(0, 16 - (currTime - lastTime));
         const id = window.setTimeout(function() {
           args[0](performance.now());

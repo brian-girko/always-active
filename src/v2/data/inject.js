@@ -82,16 +82,32 @@ script.textContent = `{
   }, true);
 
   /* requestAnimationFrame */
+  let lastTime = 0;
   window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {
     apply(target, self, args) {
       if (script.dataset.hidden === 'true') {
-        return setTimeout(args[0]);
+        const currTime = new Date().getTime();
+        const timeToCall = Math.max(0, 16 - (currTime - lastTime));
+        const id = window.setTimeout(function() {
+          args[0](performance.now());
+        }, timeToCall);
+        lastTime = currTime + timeToCall;
+        return id;
       }
       else {
         return Reflect.apply(target, self, args);
       }
     }
   });
+  window.cancelAnimationFrame = new Proxy(window.cancelAnimationFrame, {
+    apply(target, self, args) {
+      if (script.dataset.hidden === 'true') {
+        clearTimeout(args[0]);
+      }
+      return Reflect.apply(target, self, args);
+    }
+  });
+
 }`;
 document.documentElement.appendChild(script);
 script.remove();

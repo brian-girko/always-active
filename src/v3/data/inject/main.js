@@ -62,12 +62,6 @@
   });
 
   /* focus */
-  document.addEventListener('hasFocus', e => {
-    if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
-      return block(e);
-    }
-  }, true);
-
   Document.prototype.hasFocus = new Proxy(Document.prototype.hasFocus, {
     apply(target, self, args) {
       if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
@@ -76,6 +70,16 @@
       return Reflect.apply(target, self, args);
     }
   });
+
+  const onfocus = e => {
+    if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
+      if (e.target === document || e.target === window) {
+        return block(e);
+      }
+    }
+  };
+  document.addEventListener('blur', onfocus, true);
+  window.addEventListener('blur', onfocus, true);
 
   /* blur */
   const onblur = e => {

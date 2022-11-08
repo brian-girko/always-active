@@ -26,14 +26,28 @@
     }
   });
 
+  const once = {
+    focus: true,
+    visibilitychange: true,
+    webkitvisibilitychange: true
+  };
+
   document.addEventListener('visibilitychange', e => {
     port.dispatchEvent(new Event('state'));
     if (port.dataset.enabled === 'true' && port.dataset.visibility !== 'false') {
+      if (once.visibilitychange) {
+        once.visibilitychange = false;
+        return;
+      }
       return block(e);
     }
   }, true);
   document.addEventListener('webkitvisibilitychange', e => {
     if (port.dataset.enabled === 'true' && port.dataset.visibility !== 'false') {
+      if (once.webkitvisibilitychange) {
+        once.webkitvisibilitychange = false;
+        return;
+      }
       return block(e);
     }
   }, true);
@@ -74,15 +88,14 @@
   const onfocus = e => {
     if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
       if (e.target === document || e.target === window) {
-        if (onfocus.once) {
-          onfocus.once = false;
+        if (once.focus) {
+          once.focus = false;
           return;
         }
         return block(e);
       }
     }
   };
-  onfocus.once = true;
   document.addEventListener('focus', onfocus, true);
   window.addEventListener('focus', onfocus, true);
 

@@ -74,12 +74,17 @@
   const onfocus = e => {
     if (port.dataset.enabled === 'true' && port.dataset.focus !== 'false') {
       if (e.target === document || e.target === window) {
+        if (onfocus.once) {
+          onfocus.once = false;
+          return;
+        }
         return block(e);
       }
     }
   };
-  document.addEventListener('blur', onfocus, true);
-  window.addEventListener('blur', onfocus, true);
+  onfocus.once = true;
+  document.addEventListener('focus', onfocus, true);
+  window.addEventListener('focus', onfocus, true);
 
   /* blur */
   const onblur = e => {

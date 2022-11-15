@@ -1,3 +1,8 @@
+/* Tests:
+  http://www2.stat.duke.edu/~cc248/jsphylosvg/js/yui/tests/event/tests/manual/window-focus-test.html
+  https://page-visibility.vercel.app/
+*/
+
 const port = document.createElement('div');
 port.id = 'lwys-ctv-port';
 port.dataset.hidden = document.hidden;

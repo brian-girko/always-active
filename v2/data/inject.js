@@ -81,7 +81,6 @@ script.textContent = `{
   });
 
   const onfocus = e => {
-    console.log(1);
     if (script.dataset.focus !== 'false') {
       if (e.target === document || e.target === window) {
         if (once.focus && document.readyState === 'complete' && e.target === window) {

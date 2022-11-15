@@ -16,6 +16,12 @@ script.textContent = `{
     e.stopImmediatePropagation();
   };
 
+  const once = {
+    focus: true,
+    visibilitychange: true,
+    webkitvisibilitychange: true
+  };
+
   /* visibility */
   Object.defineProperty(document, 'visibilityState', {
     get() {
@@ -32,10 +38,24 @@ script.textContent = `{
   document.addEventListener('visibilitychange', e => {
     script.dispatchEvent(new Event('state'));
     if (script.dataset.visibility !== 'false') {
+      if (once.visibilitychange) {
+        once.visibilitychange = false;
+        return;
+      }
       return block(e);
     }
   }, true);
-  document.addEventListener('webkitvisibilitychange', e => script.dataset.visibility !== 'false' && block(e), true);
+  document.addEventListener('webkitvisibilitychange', e => {
+    if (script.dataset.visibility !== 'false') {
+      if (once.webkitvisibilitychange) {
+        once.webkitvisibilitychange = false;
+        return;
+      }
+      return block(e);
+    }
+  }, true);
+
+
   window.addEventListener('pagehide', e => script.dataset.visibility !== 'false' && block(e), true);
 
   /* hidden */
@@ -51,8 +71,7 @@ script.textContent = `{
   });
 
   /* focus */
-  document.addEventListener('hasFocus', e => script.dataset.focus !== 'false' && block(e), true);
-  document.__proto__.hasFocus = new Proxy(document.__proto__.hasFocus, {
+  Document.prototype.hasFocus = new Proxy(Document.prototype.hasFocus, {
     apply(target, self, args) {
       if (script.dataset.focus !== 'false') {
         return true;
@@ -60,6 +79,22 @@ script.textContent = `{
       return Reflect.apply(target, self, args);
     }
   });
+
+  const onfocus = e => {
+    console.log(1);
+    if (script.dataset.focus !== 'false') {
+      if (e.target === document || e.target === window) {
+        if (once.focus && document.readyState === 'complete' && e.target === window) {
+          once.focus = false;
+          return;
+        }
+        return block(e);
+      }
+    }
+  };
+  // document.addEventListener('focus', onfocus, true);
+  window.addEventListener('focus', onfocus, true);
+
 
   /* blur */
   const onblur = e => {
@@ -107,7 +142,6 @@ script.textContent = `{
       return Reflect.apply(target, self, args);
     }
   });
-
 }`;
 document.documentElement.appendChild(script);
 script.remove();

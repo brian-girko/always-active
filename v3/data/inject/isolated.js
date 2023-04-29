@@ -31,10 +31,10 @@ const update = () => chrome.storage.local.get({
   const policy = prefs.policies[hostname] || [];
 
   port.dataset.enabled = prefs.enabled;
-  port.dataset.blur = policy.indexOf('blur') === -1 ? prefs.blur : false;
-  port.dataset.focus = policy.indexOf('focus') === -1 ? prefs.focus : false;
-  port.dataset.mouseleave = policy.indexOf('mouseleave') === -1 ? prefs.mouseleave : false;
-  port.dataset.visibility = policy.indexOf('visibility') === -1 ? prefs.visibility : false;
+  port.dataset.blur = policy.includes('blur') ? false : prefs.blur;
+  port.dataset.focus = policy.includes('focus') ? false : prefs.focus;
+  port.dataset.mouseleave = policy.includes('mouseleave') ? false : prefs.mouseleave;
+  port.dataset.visibility = policy.includes('visibility') ? false : prefs.visibility;
 });
 update();
 chrome.storage.onChanged.addListener(update);

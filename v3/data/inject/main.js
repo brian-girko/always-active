@@ -126,7 +126,7 @@
       if (port.dataset.enabled === 'true' && port.dataset.hidden === 'true') {
         const currTime = Date.now();
         const timeToCall = Math.max(0, 16 - (currTime - lastTime));
-        const id = window.setTimeout(function() {
+        const id = setTimeout(function() {
           args[0](performance.now());
         }, timeToCall);
         lastTime = currTime + timeToCall;

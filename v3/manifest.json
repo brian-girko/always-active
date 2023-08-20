@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.3.1",
+  "version": "0.3.2",
   "name": "Always active Window - Always Visible",
   "description": "Pretend that all browser windows are active by spoofing the visibility state event and more!",
   "permissions": [

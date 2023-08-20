@@ -1,6 +1,15 @@
 {
-  const port = document.getElementById('lwys-ctv-port');
-  port.remove();
+  /* port is used to communicate between chrome and page scripts */
+  let port;
+  try {
+    port = document.getElementById('lwys-ctv-port');
+    port.remove();
+  }
+  catch (e) {
+    port = document.createElement('span');
+    port.id = 'lwys-ctv-port';
+    document.documentElement.append(port);
+  }
 
   const block = e => {
     e.preventDefault();
@@ -53,6 +62,13 @@
   }, true);
   window.addEventListener('pagehide', e => {
     if (port.dataset.enabled === 'true' && port.dataset.visibility !== 'false') {
+      block(e);
+    }
+  }, true);
+
+  /* pointercapture */
+  window.addEventListener('lostpointercapture', e => {
+    if (port.dataset.enabled === 'true' && port.dataset.pointercapture !== 'false') {
       block(e);
     }
   }, true);

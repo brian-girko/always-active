@@ -3,11 +3,18 @@
   https://page-visibility.vercel.app/
 */
 
-const port = document.createElement('div');
-port.id = 'lwys-ctv-port';
+let port;
+try {
+  port = document.getElementById('lwys-ctv-port');
+  port.remove();
+}
+catch (e) {
+  port = document.createElement('span');
+  port.id = 'lwys-ctv-port';
+  document.documentElement.append(port);
+}
 port.dataset.hidden = document.hidden;
 port.dataset.enabled = true;
-document.documentElement.appendChild(port);
 
 port.addEventListener('state', () => {
   port.dataset.hidden = document.hidden;
@@ -19,6 +26,7 @@ const update = () => chrome.storage.local.get({
   'focus': true,
   'mouseleave': true,
   'visibility': true,
+  'pointercapture': true,
   'policies': null
 }, prefs => {
   let hostname = location.hostname;
@@ -35,6 +43,7 @@ const update = () => chrome.storage.local.get({
   port.dataset.focus = policy.includes('focus') ? false : prefs.focus;
   port.dataset.mouseleave = policy.includes('mouseleave') ? false : prefs.mouseleave;
   port.dataset.visibility = policy.includes('visibility') ? false : prefs.visibility;
+  port.dataset.pointercapture = policy.includes('pointercapture') ? false : prefs.pointercapture;
 });
 update();
 chrome.storage.onChanged.addListener(update);

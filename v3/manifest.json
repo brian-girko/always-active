@@ -1,22 +1,28 @@
 {
   "manifest_version": 3,
-  "version": "0.3.2",
+  "version": "0.4.0",
   "name": "Always active Window - Always Visible",
   "description": "Pretend that all browser windows are active by spoofing the visibility state event and more!",
   "permissions": [
     "storage",
-    "scripting"
+    "scripting",
+    "contextMenus"
   ],
   "host_permissions": [
     "*://*/*"
   ],
-  "action": {},
+  "action": {
+    "default_title": "The extension is by default inactive for all websites (indicated by a gray icon). Use this button to toggle the current site to be included in the activation list (changing the icon to blue). The page will automatically reload after you make changes.",
+    "default_icon": {
+      "16": "/data/icons/disabled/16.png",
+      "32": "/data/icons/disabled/32.png",
+      "48": "/data/icons/disabled/48.png"
+    }
+  },
   "homepage_url": "https://webextension.org/listing/always-active.html",
   "icons": {
     "16": "/data/icons/16.png",
-    "19": "/data/icons/19.png",
     "32": "/data/icons/32.png",
-    "38": "/data/icons/38.png",
     "48": "/data/icons/48.png",
     "64": "/data/icons/64.png",
     "128": "/data/icons/128.png",
@@ -27,6 +33,7 @@
     "service_worker": "worker.js"
   },
   "options_ui": {
+    "open_in_tab": true,
     "page": "/data/options/index.html"
   }
 }

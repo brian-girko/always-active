@@ -47,3 +47,7 @@ const update = () => chrome.storage.local.get({
 });
 update();
 chrome.storage.onChanged.addListener(update);
+
+chrome.runtime.sendMessage({
+  method: 'set-icon'
+});

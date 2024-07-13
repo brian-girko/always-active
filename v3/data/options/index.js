@@ -60,12 +60,17 @@ document.getElementById('save').addEventListener('click', () => {
 
   const hosts = [];
   for (const h of document.getElementById('hosts').value.split(/\s*,\s*/)) {
-    try {
-      const href = h.toLowerCase().startsWith('http') ? h : 'http://' + h + '/';
-      const {hostname} = new URL(href);
-      hosts.push(hostname);
+    if (h === '*') {
+      hosts.push(h);
     }
-    catch (e) {}
+    else {
+      try {
+        const href = h.toLowerCase().startsWith('http') ? h : 'http://' + h + '/';
+        const {hostname} = new URL(href);
+        hosts.push(hostname);
+      }
+      catch (e) {}
+    }
   }
 
   chrome.runtime.sendMessage({

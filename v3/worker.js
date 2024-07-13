@@ -67,11 +67,17 @@ const activate = () => {
 
       if (prefs.enabled && prefs.hosts.length) {
         const props = {
-          'matches': prefs.hosts.map(h => '*://' + h + '/*'),
           'allFrames': true,
           'matchOriginAsFallback': true,
           'runAt': 'document_start'
         };
+        if (prefs.hosts.includes('*')) {
+          props['matches'] = ['*://*/*'];
+        }
+        else {
+          props['matches'] = prefs.hosts.map(h => '*://' + h + '/*');
+        }
+
         await chrome.scripting.registerContentScripts([{
           ...props,
           'id': 'main',

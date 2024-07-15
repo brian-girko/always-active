@@ -2,19 +2,15 @@ const log = (...args) => chrome.storage.local.get({
   log: false
 }, prefs => prefs.log && console.log(...args));
 
-const notify = async (tabId, title) => {
+const notify = async (tabId, title, symbol = 'E') => {
   tabId = tabId || (await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true
   }))[0].id;
 
-  chrome.action.setBadgeBackgroundColor({
-    tabId,
-    color: '#b16464'
-  });
   chrome.action.setBadgeText({
     tabId,
-    text: 'E'
+    text: symbol
   });
   chrome.action.setTitle({
     tabId,
@@ -114,28 +110,64 @@ activate.actions = [];
 /* action */
 chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
   hosts: []
-}, prefs => {
+}, async prefs => {
   if (tab.url?.startsWith('http')) {
-    const hosts = prefs.hosts.slice(0);
+    const {hosts} = prefs;
 
-    const {hostname} = new URL(tab.url);
-    const n = hosts.indexOf(hostname);
+    const a = await chrome.scripting.executeScript({
+      target: {
+        tabId: tab.id,
+        allFrames: true
+      },
+      func: () => location.hostname
+    }).catch(e => [{
+      result: new URL(tab.url).hostname,
+      frameId: 0
+    }]);
 
-    if (n >= 0) {
-      hosts.splice(n, 1);
+    const hostnames = (a || []).map(o => o.result).filter((s, i, l) => s && l.indexOf(s) === i);
+    const top = a.find(o => o.frameId === 0).result;
+
+    if (top) {
+      const n = hosts.indexOf(top);
+      let message = '';
+      // removing from the list
+      if (n >= 0) {
+        message = 'Removed the following hostnames:\n\n' + hostnames.join(', ') + '\n';
+        // remove all hostnames from the list
+        for (const hostname of hostnames) {
+          const n = hosts.indexOf(hostname);
+          if (n >= 0) {
+            hosts.splice(n, 1);
+          }
+        }
+      }
+      // adding to the list
+      else {
+        message = 'Added the following hostnames:\n\n' + hostnames.join(', ') + '\n';
+        for (const hostname of hostnames) {
+          const n = hosts.indexOf(hostname);
+          if (n < 0) {
+            hosts.push(hostname);
+          }
+        }
+      }
+      validate(hosts).then(error => {
+        if (error) {
+          notify(tab.id, error);
+        }
+        else {
+          activate.actions.push(() => {
+            chrome.tabs.reload(tab.id);
+            setTimeout(() => notify(tab.id, message, '✓'), 5000);
+          });
+          chrome.storage.local.set({hosts});
+        }
+      });
     }
     else {
-      hosts.push(hostname);
+      notify(tab.id, 'Cannot find the hostname of this tab');
     }
-    validate(hosts).then(message => {
-      if (message) {
-        notify(tab.id, message);
-      }
-      else {
-        activate.actions.push(() => chrome.tabs.reload(tab.id));
-        chrome.storage.local.set({hosts});
-      }
-    });
   }
   else {
     notify(tab.id, 'Tab does not have a valid hostname');

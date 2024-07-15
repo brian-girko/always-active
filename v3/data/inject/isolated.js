@@ -48,6 +48,8 @@ const update = () => chrome.storage.local.get({
 update();
 chrome.storage.onChanged.addListener(update);
 
-chrome.runtime.sendMessage({
-  method: 'set-icon'
-});
+if (window.top === window) {
+  chrome.runtime.sendMessage({
+    method: 'set-icon'
+  });
+}

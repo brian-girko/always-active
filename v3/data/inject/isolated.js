@@ -1,6 +1,7 @@
 /* Tests:
   http://www2.stat.duke.edu/~cc248/jsphylosvg/js/yui/tests/event/tests/manual/window-focus-test.html
   https://page-visibility.vercel.app/
+  https://codepen.io/calebnance/full/nXPaKN
 */
 
 let port;

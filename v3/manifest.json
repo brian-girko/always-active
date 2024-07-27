@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.4.1",
+  "version": "0.4.2",
   "name": "Always active Window - Always Visible",
   "description": "Pretend that all browser windows are active by spoofing the visibility state event and more!",
   "permissions": [
@@ -34,5 +34,8 @@
   "options_ui": {
     "open_in_tab": true,
     "page": "/data/options/index.html"
+  },
+  "commands": {
+    "_execute_action": {}
   }
 }

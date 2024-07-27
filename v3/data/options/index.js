@@ -114,6 +114,11 @@ document.getElementById('report').addEventListener('click', () => chrome.tabs.cr
   url: chrome.runtime.getManifest().homepage_url + '#reviews'
 }));
 
+// test
+document.getElementById('test').addEventListener('click', () => chrome.tabs.create({
+  url: 'https://webbrowsertools.com/test-always-active/'
+}));
+
 // links
 const links = window.links = (d = document) => {
   for (const a of [...d.querySelectorAll('[data-href]')]) {

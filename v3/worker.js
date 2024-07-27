@@ -131,6 +131,7 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
     if (top) {
       const n = hosts.indexOf(top);
       let message = '';
+      let badge = '✓';
       // removing from the list
       if (n >= 0) {
         message = 'Removed the following hostnames:\n\n' + hostnames.join(', ') + '\n';
@@ -144,7 +145,7 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
       }
       // adding to the list
       else {
-        message = 'Added the following hostnames:\n\n' + hostnames.join(', ') + '\n';
+        message = 'Added the following hostnames:\n' + hostnames.join(', ') + '\n';
         for (const hostname of hostnames) {
           const n = hosts.indexOf(hostname);
           if (n < 0) {
@@ -157,9 +158,16 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
           notify(tab.id, error);
         }
         else {
+          if (hosts.includes('*')) {
+            badge = '×';
+            message += `
+
+The presence of "*" in your host list causes all pages to match by default. To resolve this, visit the options page.`;
+          }
+
           activate.actions.push(() => {
             chrome.tabs.reload(tab.id);
-            setTimeout(() => notify(tab.id, message, '✓'), 5000);
+            setTimeout(() => notify(tab.id, message, badge), 5000);
           });
           chrome.storage.local.set({hosts});
         }
@@ -197,6 +205,47 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
     return true;
   }
 });
+
+/* operation mode (for old users) */
+const mode = ({reason}) => {
+  // do not offer mode selection to the new users
+  if (reason !== 'update') {
+    chrome.storage.local.set({
+      'mode-displayed': true
+    });
+    return;
+  }
+
+  chrome.storage.local.get({
+    'mode-displayed': false,
+    'hosts': []
+  }, async prefs => {
+    if (prefs['mode-displayed']) {
+      return;
+    }
+    chrome.storage.local.set({
+      'mode-displayed': true
+    });
+    // user already know how to deal with the change
+    if (prefs.hosts.length) {
+      return;
+    }
+
+    const width = 600;
+    const height = 300;
+    const win = await chrome.windows.getCurrent();
+
+    chrome.windows.create({
+      url: '/data/guide/index.html',
+      width,
+      height,
+      left: win.left + Math.round((win.width - width) / 2),
+      top: win.top + Math.round((win.height - height) / 2),
+      type: 'popup'
+    });
+  });
+};
+chrome.runtime.onInstalled.addListener(mode);
 
 /* FAQs & Feedback */
 {

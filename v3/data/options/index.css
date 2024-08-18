@@ -1,7 +1,10 @@
 body {
-  font-size: 13px;
-  font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
-  margin: 10px;
+  font-size: 14px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  background-color: #fff;
+  color: #4d5156;
+  width: min(100% - 2rem, 70rem);
+  margin-inline: auto;
 }
 textarea {
   padding: 5px;

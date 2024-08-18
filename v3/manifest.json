@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.4.2",
+  "version": "0.4.3",
   "name": "Always active Window - Always Visible",
   "description": "Pretend that all browser windows are active by spoofing the visibility state event and more!",
   "permissions": [
@@ -29,7 +29,8 @@
     "512": "/data/icons/512.png"
   },
   "background": {
-    "service_worker": "worker.js"
+    "service_worker": "worker.js",
+    "scripts": ["worker.js"]
   },
   "options_ui": {
     "open_in_tab": true,
@@ -37,5 +38,11 @@
   },
   "commands": {
     "_execute_action": {}
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{4b7825da-0dd1-44f9-9717-bee5b2408af6}",
+      "strict_min_version": "115.0"
+    }
   }
 }

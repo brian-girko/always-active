@@ -1,0 +1,5 @@
+{
+  "description": {
+    "message": "Simulate all whitelisted browser windows as active by spoofing the visibility state event and more!"
+  }
+}

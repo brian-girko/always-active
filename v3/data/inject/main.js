@@ -134,6 +134,13 @@
       }
     }
   }, true);
+  window.addEventListener('mouseout', e => {
+    if (port.dataset.enabled === 'true' && port.dataset.mouseout !== 'false') {
+      if (e.target === document.documentElement || e.target === document.body) {
+        return block(e);
+      }
+    }
+  }, true);
 
   /* requestAnimationFrame */
   let lastTime = 0;

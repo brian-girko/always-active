@@ -14,6 +14,7 @@ chrome.storage.local.get({
   'visibility': true,
   'pointercapture': true,
   'mouseleave': true,
+  'mouseout': true,
   'log': false,
   'faqs': true,
   'policies': null,
@@ -26,6 +27,7 @@ chrome.storage.local.get({
   document.getElementById('pointercapture').checked = prefs.pointercapture;
   document.getElementById('blur').checked = prefs.blur;
   document.getElementById('mouseleave').checked = prefs.mouseleave;
+  document.getElementById('mouseout').checked = prefs.mouseout;
   document.getElementById('log').checked = prefs.log;
   document.getElementById('faqs').checked = prefs.faqs;
   document.getElementById('policies').value = prefs.policies ? JSON.stringify(prefs.policies, null, '  ') : '';
@@ -38,6 +40,7 @@ document.getElementById('save').addEventListener('click', () => {
     'hidden': document.getElementById('hidden').checked,
     'blur': document.getElementById('blur').checked,
     'mouseleave': document.getElementById('mouseleave').checked,
+    'mouseout': document.getElementById('mouseout').checked,
     'visibility': document.getElementById('visibility').checked,
     'pointercapture': document.getElementById('pointercapture').checked,
     'focus': document.getElementById('focus').checked,

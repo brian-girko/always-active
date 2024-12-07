@@ -34,7 +34,7 @@ chrome.storage.local.get({
   document.getElementById('hosts').value = prefs.hosts.join(', ');
 });
 
-document.getElementById('save').addEventListener('click', () => {
+document.getElementById('save').addEventListener('click', async () => {
   const prefs = {
     'visibilityState': document.getElementById('visibilityState').checked,
     'hidden': document.getElementById('hidden').checked,
@@ -63,34 +63,32 @@ document.getElementById('save').addEventListener('click', () => {
 
   const hosts = [];
   for (const h of document.getElementById('hosts').value.split(/\s*,\s*/)) {
-    if (h === '*') {
+    const msg = await chrome.runtime.sendMessage({
+      method: 'validate',
+      hosts: [h]
+    });
+    if (!msg) {
       hosts.push(h);
     }
     else {
-      try {
-        const href = h.toLowerCase().startsWith('http') ? h : 'http://' + h + '/';
-        const {hostname} = new URL(href);
-        hosts.push(hostname);
-      }
-      catch (e) {}
+      console.info('Host is not valid', h, msg);
+      notify(h + ': ' + msg);
     }
   }
-
-  chrome.runtime.sendMessage({
+  // test all
+  const msg = await chrome.runtime.sendMessage({
     method: 'validate',
     hosts
-  }, message => {
-    if (message) {
-      notify(message);
-    }
-    else {
-      prefs.hosts = hosts;
-      document.getElementById('hosts').value = hosts.join(', ');
-      chrome.storage.local.set(prefs, () => {
-        notify('Options saved');
-      });
-    }
   });
+  if (msg) {
+    notify(msg);
+  }
+  else {
+    prefs.hosts = hosts;
+    document.getElementById('hosts').value = hosts.join(', ');
+    await chrome.storage.local.set(prefs);
+    notify('Options saved');
+  }
 });
 
 // reset

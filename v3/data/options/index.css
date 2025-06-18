@@ -1,6 +1,6 @@
 body {
   font-size: 14px;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, Ubuntu, Cantarell, "Noto Sans", sans-serif;
   background-color: #fff;
   color: #4d5156;
   width: min(100% - 2rem, 70rem);
@@ -48,7 +48,11 @@ hr {
   grid-gap: 10px;
   align-items: center;
 }
-.disabled {
+.disabled * {
   opacity: 0.4;
   pointer-events: none;
+}
+
+#redirect-container {
+  display: contents;
 }

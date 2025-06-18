@@ -7,10 +7,12 @@
 </head>
 <body>
   <div class="grid">
-    <label class="disabled" for="visibilityState">Overwrite "document.visibilityState"</label>
-    <input class="disabled" type="checkbox" id="visibilityState">
-    <label class="disabled" for="hidden">Overwrite "document.hidden"</label>
-    <input class="disabled" type="checkbox" id="hidden">
+    <div class="disabled" style="display: contents;">
+      <label for="visibilityState">Overwrite "document.visibilityState"</label>
+      <input type="checkbox" id="visibilityState">
+      <label for="hidden">Overwrite "document.hidden"</label>
+      <input type="checkbox" id="hidden">
+    </div>
     <label for="blur">Globally block "blur" events</label>
     <input type="checkbox" id="blur">
     <label for="focus">Globally block "focus" events</label>
@@ -23,8 +25,10 @@
     <input type="checkbox" id="mouseout">
     <label for="pointercapture">Globally block "lostpointercapture" events</label>
     <input type="checkbox" id="pointercapture">
-    <label for="redirect">Block JS redirection when page is hidden</label>
-    <input type="checkbox" id="redirect">
+    <div id="redirect-container">
+      <label for="redirect">Block JS redirection when page is hidden</label>
+      <input type="checkbox" id="redirect">
+    </div>
     <label for="log">Display logs (for debugging purpose only)</label>
     <input type="checkbox" id="log">
     <label for="faqs">Open FAQs page on updates (recommended)</label>
@@ -43,7 +47,7 @@ example.com, *.example.com, www.example.com"></textarea>
   <p>
     <input type="button" id="support" value="Support Development">
     <input type="button" id="report" value="Report Bugs">
-    <input type="button" id="test" value="Test">
+    <input type="button" id="test" value="Test Rules">
   </p>
   <div>
     <input type="button" id="reset" value="Factory Reset">

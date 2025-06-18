@@ -34,7 +34,13 @@ chrome.storage.local.get({
   document.getElementById('faqs').checked = prefs.faqs;
   document.getElementById('policies').value = prefs.policies ? JSON.stringify(prefs.policies, null, '  ') : '';
   document.getElementById('hosts').value = prefs.hosts.join(', ');
+
+  if (typeof navigation === 'undefined') {
+    document.getElementById('redirect').checked = false;
+    document.getElementById('redirect-container').classList.add('disabled');
+  }
 });
+
 
 document.getElementById('save').addEventListener('click', async () => {
   const prefs = {

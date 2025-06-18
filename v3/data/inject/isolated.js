@@ -26,6 +26,7 @@ const update = () => chrome.storage.local.get({
   'enabled': true,
   'blur': true,
   'focus': true,
+  'redirect': true,
   'mouseleave': true,
   'mouseout': true,
   'visibility': true,
@@ -44,6 +45,7 @@ const update = () => chrome.storage.local.get({
   port.dataset.enabled = prefs.enabled;
   port.dataset.blur = policy.includes('blur') ? false : prefs.blur;
   port.dataset.focus = policy.includes('focus') ? false : prefs.focus;
+  port.dataset.redirect = policy.includes('redirect') ? false : prefs.redirect;
   port.dataset.mouseleave = policy.includes('mouseleave') ? false : prefs.mouseleave;
   port.dataset.mouseout = policy.includes('mouseout') ? false : prefs.mouseout;
   port.dataset.visibility = policy.includes('visibility') ? false : prefs.visibility;

@@ -11,6 +11,7 @@ chrome.storage.local.get({
   'hidden': true,
   'blur': true,
   'focus': true,
+  'redirect': true,
   'visibility': true,
   'pointercapture': true,
   'mouseleave': true,
@@ -23,6 +24,7 @@ chrome.storage.local.get({
   document.getElementById('visibilityState').checked = prefs.visibilityState;
   document.getElementById('hidden').checked = prefs.hidden;
   document.getElementById('focus').checked = prefs.focus;
+  document.getElementById('redirect').checked = prefs.redirect;
   document.getElementById('visibility').checked = prefs.visibility;
   document.getElementById('pointercapture').checked = prefs.pointercapture;
   document.getElementById('blur').checked = prefs.blur;
@@ -44,6 +46,7 @@ document.getElementById('save').addEventListener('click', async () => {
     'visibility': document.getElementById('visibility').checked,
     'pointercapture': document.getElementById('pointercapture').checked,
     'focus': document.getElementById('focus').checked,
+    'redirect': document.getElementById('redirect').checked,
     'log': document.getElementById('log').checked,
     'faqs': document.getElementById('faqs').checked
   };

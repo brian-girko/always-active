@@ -1,3 +1,4 @@
+/* global navigation */
 {
   /* port is used to communicate between chrome and page scripts */
   let port;
@@ -40,6 +41,37 @@
     visibilitychange: true,
     webkitvisibilitychange: true
   };
+
+  /* prevent redirect when hidden */
+  if (window.top === window && typeof navigation !== 'undefined') {
+    // Save the original property descriptor
+    const vstate = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
+    const redirect = e => {
+      if (redirect.href) {
+        console.info('[Always Active]', 'an attempt to redirect is being blocked', redirect.href);
+        e.preventDefault();
+        e.returnValue = 'no';
+      }
+    };
+    navigation.addEventListener('navigate', navigateEvent => {
+      if (navigateEvent.navigationType === 'reload') {
+        redirect.href = navigateEvent.destination.url;
+      }
+    });
+    document.addEventListener('visibilitychange', e => {
+      delete redirect.href;
+      removeEventListener('beforeunload', redirect);
+      try {
+        const state = vstate.get.call(document);
+        if (state === 'hidden') {
+          if (port.dataset.enabled === 'true' && port.dataset.redirect !== 'false') {
+            addEventListener('beforeunload', redirect);
+          }
+        }
+      }
+      catch (e) {}
+    });
+  }
 
   document.addEventListener('visibilitychange', e => {
     port.dispatchEvent(new Event('state'));

@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.4.3",
+  "version": "0.4.3.1",
   "name": "Always active Window - Always Visible",
   "default_locale": "en",
   "description": "__MSG_description__",
@@ -14,20 +14,20 @@
   "action": {
     "default_title": "The extension is by default inactive for all websites (indicated by a gray icon). Use this button to toggle the current site to be included in the activation list (changing the icon to blue). The page will automatically reload after you make changes.",
     "default_icon": {
-      "16": "/data/icons/disabled/16.png",
-      "32": "/data/icons/disabled/32.png",
-      "48": "/data/icons/disabled/48.png"
+      "16": "data/icons/disabled/16.png",
+      "32": "data/icons/disabled/32.png",
+      "48": "data/icons/disabled/48.png"
     }
   },
   "homepage_url": "https://webextension.org/listing/always-active.html",
   "icons": {
-    "16": "/data/icons/16.png",
-    "32": "/data/icons/32.png",
-    "48": "/data/icons/48.png",
-    "64": "/data/icons/64.png",
-    "128": "/data/icons/128.png",
-    "256": "/data/icons/256.png",
-    "512": "/data/icons/512.png"
+    "16": "data/icons/16.png",
+    "32": "data/icons/32.png",
+    "48": "data/icons/48.png",
+    "64": "data/icons/64.png",
+    "128": "data/icons/128.png",
+    "256": "data/icons/256.png",
+    "512": "data/icons/512.png"
   },
   "background": {
     "service_worker": "worker.js",
@@ -35,7 +35,7 @@
   },
   "options_ui": {
     "open_in_tab": true,
-    "page": "/data/options/index.html"
+    "page": "data/options/index.html"
   },
   "commands": {
     "_execute_action": {}

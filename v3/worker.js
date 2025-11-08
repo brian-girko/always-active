@@ -119,7 +119,8 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
         tabId: tab.id,
         allFrames: true
       },
-      func: () => location.hostname
+      func: () => location.hostname,
+      injectImmediately: true
     }).catch(e => [{
       result: new URL(tab.url).hostname,
       frameId: 0

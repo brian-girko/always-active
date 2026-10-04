@@ -2,7 +2,9 @@ const log = (...args) => chrome.storage.local.get({
   log: false
 }, prefs => prefs.log && console.log(...args));
 
-const notify = async (tabId, title, symbol = 'E') => {
+const i18n = (...args) => chrome.i18n.getMessage(...args) || '';
+
+const notify = async (tabId, title, symbol = '!') => {
   tabId = tabId || (await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true
@@ -16,6 +18,49 @@ const notify = async (tabId, title, symbol = 'E') => {
     tabId,
     title
   });
+};
+
+/* non-visual state indication (accessibility) */
+const setState = async tab => {
+  if (!tab?.id) {
+    return;
+  }
+  let hostname = '';
+  if (tab.url?.startsWith('http')) {
+    try {
+      const a = await chrome.scripting.executeScript({
+        target: {
+          tabId: tab.id,
+          allFrames: true
+        },
+        func: () => location.hostname,
+        injectImmediately: true
+      });
+      hostname = ((a || []).find(o => o.frameId === 0) || (a || [])[0] || {}).result || new URL(tab.url).hostname;
+    }
+    catch (e) {
+      try {
+        hostname = new URL(tab.url).hostname;
+      }
+      catch (e) {}
+    }
+  }
+
+  if (!hostname) {
+    chrome.action.setBadgeText({tabId: tab.id, text: ''});
+    chrome.action.setTitle({tabId: tab.id, title: i18n('action_title_unknown')});
+    return;
+  }
+  const {hosts, enabled, badge} = await chrome.storage.local.get({
+    enabled: true,
+    badge: true,
+    hosts: []
+  });
+  const active = enabled && (hosts.includes('*') || hosts.includes(hostname));
+  const text = badge ? (active ? 'ON' : 'OFF') : '';
+  chrome.action.setBadgeText({tabId: tab.id, text});
+  chrome.action.setBadgeBackgroundColor({tabId: tab.id, color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]});
+  chrome.action.setTitle({tabId: tab.id, title: i18n(active ? 'action_title_enabled' : 'action_title_disabled', hostname)});
 };
 
 const validate = async hosts => {
@@ -132,7 +177,6 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
     if (top) {
       const n = hosts.indexOf(top);
       let message = '';
-      let badge = '✓';
       // removing from the list
       if (n >= 0) {
         message = 'Removed the following hostnames:\n\n' + hostnames.join(', ') + '\n';
@@ -154,22 +198,25 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
           }
         }
       }
-      validate(hosts).then(error => {
+      validate(hosts).then(async error => {
         if (error) {
           notify(tab.id, error);
         }
         else {
-          if (hosts.includes('*')) {
-            badge = '×';
-            message += `
-
-The presence of "*" in your host list causes all pages to match by default. To resolve this, visit the options page.`;
-          }
-
-          activate.actions.push(() => {
-            chrome.tabs.reload(tab.id);
-            setTimeout(() => notify(tab.id, message, badge), 5000);
+          const active = hosts.includes('*') || hosts.includes(top);
+          const {badge} = await chrome.storage.local.get({badge: true});
+          // immediate non-visual feedback in the button's accessible label
+          chrome.action.setBadgeText({tabId: tab.id, text: badge ? (active ? 'ON' : 'OFF') : ''});
+          chrome.action.setBadgeBackgroundColor({
+            tabId: tab.id,
+            color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]
           });
+          let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', top);
+          if (hosts.includes('*')) {
+            title += '\n' + i18n('title_star_note');
+          }
+          chrome.action.setTitle({tabId: tab.id, title});
+          activate.actions.push(() => chrome.tabs.reload(tab.id));
           chrome.storage.local.set({hosts});
         }
       });
@@ -200,6 +247,7 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
         '48': '/data/icons/48.png'
       }
     });
+    setState(sender.tab);
   }
   else if (request.method === 'validate') {
     validate(request.hosts).then(message => response(message));

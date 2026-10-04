@@ -1,4 +1,19 @@
 const toast = document.getElementById('toast');
+const hostsBox = document.getElementById('hosts');
+const allSites = document.getElementById('all-sites');
+
+const syncAllSites = () => {
+  allSites.checked = hostsBox.value.split(/\s*,\s*/).some(h => h === '*');
+};
+
+allSites.addEventListener('change', () => {
+  const list = hostsBox.value.split(/\s*,\s*/).filter(h => h && h !== '*');
+  if (allSites.checked) {
+    list.push('*');
+  }
+  hostsBox.value = list.join(', ');
+});
+hostsBox.addEventListener('input', syncAllSites);
 
 const notify = (message, timeout = 1000) => {
   toast.textContent = message;
@@ -18,6 +33,7 @@ chrome.storage.local.get({
   'mouseout': true,
   'log': false,
   'faqs': true,
+  'badge': true,
   'policies': null,
   'hosts': []
 }, prefs => {
@@ -32,8 +48,10 @@ chrome.storage.local.get({
   document.getElementById('mouseout').checked = prefs.mouseout;
   document.getElementById('log').checked = prefs.log;
   document.getElementById('faqs').checked = prefs.faqs;
+  document.getElementById('badge').checked = prefs.badge;
   document.getElementById('policies').value = prefs.policies ? JSON.stringify(prefs.policies, null, '  ') : '';
-  document.getElementById('hosts').value = prefs.hosts.join(', ');
+  hostsBox.value = prefs.hosts.join(', ');
+  syncAllSites();
 
   if (typeof navigation === 'undefined') {
     document.getElementById('redirect').checked = false;
@@ -54,7 +72,8 @@ document.getElementById('save').addEventListener('click', async () => {
     'focus': document.getElementById('focus').checked,
     'redirect': document.getElementById('redirect').checked,
     'log': document.getElementById('log').checked,
-    'faqs': document.getElementById('faqs').checked
+    'faqs': document.getElementById('faqs').checked,
+    'badge': document.getElementById('badge').checked
   };
 
   let policies = null;
@@ -94,7 +113,8 @@ document.getElementById('save').addEventListener('click', async () => {
   }
   else {
     prefs.hosts = hosts;
-    document.getElementById('hosts').value = hosts.join(', ');
+    hostsBox.value = hosts.join(', ');
+    syncAllSites();
     await chrome.storage.local.set(prefs);
     notify('Options saved');
   }

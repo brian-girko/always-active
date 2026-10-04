@@ -1,5 +1,27 @@
 {
   "description": {
     "message": "Simulate all whitelisted browser windows as active by spoofing the visibility state event and more!"
+  },
+  "action_title_enabled": {
+    "message": "Enabled. The current tab (top website: $HOST$) stays active while in the background. Click to disable it for $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "action_title_disabled": {
+    "message": "Not enabled. Click to keep the current tab (top website: $HOST$) active while in the background for $HOST$.",
+    "placeholders": {
+      "host": {
+        "content": "$1"
+      }
+    }
+  },
+  "action_title_unknown": {
+    "message": "This tab cannot be handled by this extension. Open a regular http(s) website, such as youtube.com, and click again."
+  },
+  "title_star_note": {
+    "message": "The \"*\" wildcard in your host list enables this extension on all websites. To change this, visit the options page."
   }
 }

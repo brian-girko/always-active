@@ -6,7 +6,16 @@ body {
   margin: 10px 20px;
   height: calc(100vh - 20px);
   display: grid;
-  grid-template-rows: min-content 1fr min-content;
+  grid-template-rows: min-content 1fr min-content min-content;
+}
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+legend {
+  font-weight: bold;
+  padding-bottom: 5px;
 }
 input[type=button] {
   height: 28px;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,17 +8,19 @@
 </head>
 <body>
   <h1>Operation Mode</h1>
-  <div>
+  <fieldset>
+    <legend>Choose how the extension behaves</legend>
     <div id="mode">
       <input type="radio" name="mode" id="per-host" checked>
       <label for="per-host">Enable "Always active Window" for specific tabs by clicking the action button once for each desired tab or by visiting the option page.</label>
       <input type="radio" name="mode" id="entire">
       <label for="entire">Work on all tabs (previous behavior) (not recommended)</label>
     </div>
-  </div>
+  </fieldset>
   <p id="tools">
     <input type="button" value="Save Mode" id="save">
   </p>
+  <p id="status" role="status" aria-live="polite"></p>
   <script type="text/javascript" src="index.js"></script>
 </body>
 </html>

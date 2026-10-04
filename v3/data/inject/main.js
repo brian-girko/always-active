@@ -37,11 +37,12 @@
   });
 
   const vstate = Object.getOwnPropertyDescriptor(Document.prototype, 'visibilityState');
+  const cstate = vstate.get.call(document);
   const once = {
     focus: true,
     // if document is hidden allow one time event
-    visibilitychange: vstate.get.call(document) === 'hidden',
-    webkitvisibilitychange: vstate.get.call(document) === 'hidden'
+    visibilitychange: cstate === 'hidden',
+    webkitvisibilitychange: cstate === 'hidden'
   };
 
   /* prevent redirect when hidden */

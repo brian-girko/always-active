@@ -1,48 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Options Page :: Always active Window - Always Visible</title>
+  <meta charset="utf-8">
+  <title>Options Page :: Always active Window</title>
   <link rel="stylesheet" type="text/css" href="index.css">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <div class="grid">
-    <div class="disabled" style="display: contents;">
-      <label for="visibilityState">Overwrite "document.visibilityState"</label>
-      <input type="checkbox" id="visibilityState">
-      <label for="hidden">Overwrite "document.hidden"</label>
-      <input type="checkbox" id="hidden">
+  <h1>Options Page :: Always active Window</h1>
+  <fieldset>
+    <legend><h2>Event blocking options (these options apply to enabled websites)</h2></legend>
+    <div class="grid">
+      <div class="disabled" style="display: contents;">
+        <label for="visibilityState">Overwrite "document.visibilityState"</label>
+        <input type="checkbox" id="visibilityState">
+        <label for="hidden">Overwrite "document.hidden"</label>
+        <input type="checkbox" id="hidden">
+      </div>
+      <label for="blur">Globally block "blur" events</label>
+      <input type="checkbox" id="blur">
+      <label for="focus">Globally block "focus" events</label>
+      <input type="checkbox" id="focus">
+      <label for="visibility">Globally block "visibility" events</label>
+      <input type="checkbox" id="visibility">
+      <label for="mouseleave">Globally block "mouseleave" events</label>
+      <input type="checkbox" id="mouseleave">
+      <label for="mouseout">Globally block "mouseout" events</label>
+      <input type="checkbox" id="mouseout">
+      <label for="pointercapture">Globally block "lostpointercapture" events</label>
+      <input type="checkbox" id="pointercapture">
+      <div id="redirect-container">
+        <label for="redirect">Block JS redirection when page is hidden</label>
+        <input type="checkbox" id="redirect">
+      </div>
     </div>
-    <label for="blur">Globally block "blur" events</label>
-    <input type="checkbox" id="blur">
-    <label for="focus">Globally block "focus" events</label>
-    <input type="checkbox" id="focus">
-    <label for="visibility">Globally block "visibility" events</label>
-    <input type="checkbox" id="visibility">
-    <label for="mouseleave">Globally block "mouseleave" events</label>
-    <input type="checkbox" id="mouseleave">
-    <label for="mouseout">Globally block "mouseout" events</label>
-    <input type="checkbox" id="mouseout">
-    <label for="pointercapture">Globally block "lostpointercapture" events</label>
-    <input type="checkbox" id="pointercapture">
-    <div id="redirect-container">
-      <label for="redirect">Block JS redirection when page is hidden</label>
-      <input type="checkbox" id="redirect">
+  </fieldset>
+  <fieldset>
+    <legend><h2>Extra Options</h2></legend>
+    <div class="grid">
+      <label for="log">Display logs (for debugging purpose only)</label>
+      <input type="checkbox" id="log">
+      <label for="faqs">Open FAQs page on updates (recommended)</label>
+      <input type="checkbox" id="faqs">
+      <label for="badge">Display the ON/OFF badge text on the extension button</label>
+      <input type="checkbox" id="badge">
     </div>
-    <label for="log">Display logs (for debugging purpose only)</label>
-    <input type="checkbox" id="log">
-    <label for="faqs">Open FAQs page on updates (recommended)</label>
-    <input type="checkbox" id="faqs">
-  </div>
-  <h1>List of Hostnames</h1>
-  <textarea id="hosts" rows="8" placeholder="List of hostnames where the extension is active, separated by commas. You can modify this list by clicking the action button to add or remove hostnames. Enabling the extension on all hostnames with '*' is possible but discouraged, as it may negatively impact performance. Instead, limit the extension's use to hostnames that require an active tab to function properly. Example:
+  </fieldset>
 
-example.com, *.example.com, www.example.com"></textarea>
-  <h1><a data-href="faq6" target="_blank">Policies</a></h1>
-  <textarea id="policies" rows="10" placeholder='A JSON object to prevent blocking of some events that conflict with particular hostnames. Example:
-{
+  <h2>List of Hostnames</h2>
+  <p id="hosts-description">List of hostnames where the extension is active, separated by commas. You can modify this list by clicking the action button to add or remove hostnames. Enabling the extension on all hostnames with "*" is possible but discouraged, as it may negatively impact performance. Instead, limit the extension's use to hostnames that require an active tab to function properly. Example: example.com, *.example.com, www.example.com</p>
+  <textarea id="hosts" rows="8" placeholder="example.com, *.example.com, www.example.com" aria-describedby="hosts-description"></textarea>
+  <div class="flex">
+    <input type="checkbox" id="all-sites">
+    <label for="all-sites">Enable on all websites (adds the "*" wildcard to the list). Selecting this check box adds the wildcard; clearing it removes the wildcard.</label>
+  </div>
+  <h2><a data-href="faq6" target="_blank">Policies</a></h2>
+  <p id="policies-description">A JSON object to prevent blocking of some events that conflict with particular hostnames. Example: {"docs.google.com": ["blur"]}</p>
+  <textarea id="policies" rows="10" placeholder='{
   "docs.google.com": ["blur"]
-}'></textarea>
+}' aria-describedby="policies-description"></textarea>
 
   <p>
     <input type="button" id="support" value="Support Development">
@@ -50,9 +66,9 @@ example.com, *.example.com, www.example.com"></textarea>
     <input type="button" id="test" value="Test Rules">
   </p>
   <div>
-    <input type="button" id="reset" value="Factory Reset">
+    <input type="button" id="reset" value="Factory Reset (double-click)">
     <input type="button" id="save" value="Save Options">
-    <span id="toast"></span>
+    <span id="toast" role="status" aria-live="polite"></span>
   </div>
   <script type="text/javascript" src="index.js"></script>
 </body>

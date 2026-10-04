@@ -14,11 +14,12 @@ textarea {
 button,
 input[type=submit],
 input[type=button] {
-  height: 28px;
   color: #444;
   background-image: linear-gradient(rgb(237, 237, 237), rgb(237, 237, 237) 38%, rgb(222, 222, 222));
   box-shadow: rgba(0, 0, 0, 0.08) 0 1px 0, rgba(255, 255, 255, 0.75) 0 1px 2px inset;
   text-shadow: rgb(240, 240, 240) 0 1px 0;
+  cursor: pointer;
+  padding: 5px;
 }
 button,
 input,
@@ -34,8 +35,36 @@ a:visited {
   text-decoration: none;
 }
 h1 {
-  font-size: 110%;
-  margin-top: 20px;
+  font-size: 120%;
+  padding: 20px;
+  background: #d8eaff;
+  text-align: center;
+  margin: 0;
+}
+h2 {
+  font-size: 105%;
+  margin-top: 18px;
+  background: #e9e9e9;
+  padding: 10px;
+}
+fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+legend {
+  width: 100%;
+  box-sizing: border-box;
+}
+.toast-container {
+  display: inline-block;
+}
+#toast {
+  font-weight: bold;
+}
+#all-sites {
+  margin: 10px 5px 10px 0;
 }
 hr {
   border: none;
@@ -46,6 +75,11 @@ hr {
   display: grid;
   grid-template-columns: 1fr min-content;
   grid-gap: 10px;
+  align-items: center;
+}
+.flex {
+  display: flex;
+  gap: 5px;
   align-items: center;
 }
 .disabled * {

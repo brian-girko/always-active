@@ -65,8 +65,14 @@ const update = () => chrome.storage.local.get({
 update();
 chrome.storage.onChanged.addListener(update);
 
+/* non-visual state indication (accessibility):
+   the top-frame script reports itself to the worker (the badge shows ON);
+   the worker paints the forced states (R) itself, on click */
 if (window.top === window) {
   chrome.runtime.sendMessage({
-    method: 'set-icon'
-  });
+    method: 'set-icon',
+    hostname: location.hostname
+  }).catch(e => {});
 }
+
+''

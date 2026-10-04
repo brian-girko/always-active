@@ -4,94 +4,63 @@ const log = (...args) => chrome.storage.local.get({
 
 const i18n = (...args) => chrome.i18n.getMessage(...args) || '';
 
+const COLORS = {
+  on: [27, 94, 32, 255],
+  off: [176, 24, 24, 255]
+};
+
+/* preference mirror: set-icon paints are synchronous, no storage read needed */
+let badge = true;
+chrome.storage.local.get({badge: true}, prefs => badge = prefs.badge);
+
+const paint = (tabId, text, color, title) => {
+  chrome.action.setBadgeText({tabId, text});
+  if (color) {
+    chrome.action.setBadgeBackgroundColor({
+      tabId,
+      color
+    });
+  }
+  if (title) {
+    chrome.action.setTitle({tabId, title});
+  }
+};
+
+const urlHost = url => {
+  try {
+    return new URL(url).hostname;
+  }
+  catch (e) {
+    return '';
+  }
+};
+
 const notify = async (tabId, title, symbol = '!') => {
   tabId = tabId || (await chrome.tabs.query({
     active: true,
     lastFocusedWindow: true
-  }))[0].id;
-
-  chrome.action.setBadgeText({
-    tabId,
-    text: symbol
-  });
-  chrome.action.setTitle({
-    tabId,
-    title
-  });
-};
-
-/* determination of the current protection state from the page itself.
-   All markers live on the ISOLATED world's global object: per document, invisible to the page, and gone after a reload. */
-const stateOf = async tabId => {
-  try {
-    const [{result} = {}] = await chrome.scripting.executeScript({
-      target: {tabId},
-      world: 'ISOLATED',
-      injectImmediately: true,
-      func: () => ({
-        protected: !!self.PROTECTED,
-        applied: !!self.APPLIED_NOW
-      })
-    });
-    return result || {};
-  }
-  catch (e) {
-    return {};
+  }))[0]?.id;
+  if (tabId) {
+    paint(tabId, symbol, COLORS.off, title);
   }
 };
 
-/* non-visual state indication (accessibility) */
-const setState = async tab => {
-  if (!tab?.id) {
-    return;
-  }
-  let hostname = '';
-  if (tab.url?.startsWith('http')) {
-    try {
-      const a = await chrome.scripting.executeScript({
-        target: {
-          tabId: tab.id,
-          allFrames: true
-        },
-        func: () => location.hostname,
-        injectImmediately: true
+/* click-time only: shows the confirm dialog in the page and, on accept, asks
+   the page to send the reload message back to the worker */
+const askReload = (tabId, key, method) => chrome.scripting.executeScript({
+  target: {tabId},
+  world: 'ISOLATED',
+  injectImmediately: true,
+  func: (key, method) => {
+    if (window.confirm(chrome.i18n.getMessage(key) || '')) {
+      chrome.runtime.sendMessage({
+        method,
+        hostname: location.hostname
       });
-      hostname = ((a || []).find(o => o.frameId === 0) || (a || [])[0] || {}).result || new URL(tab.url).hostname;
     }
-    catch (e) {
-      try {
-        hostname = new URL(tab.url).hostname;
-      }
-      catch (e) {}
-    }
-  }
-
-  if (!hostname) {
-    chrome.action.setBadgeText({tabId: tab.id, text: ''});
-    chrome.action.setTitle({tabId: tab.id, title: i18n('action_title_unknown')});
-    return;
-  }
-  const {hosts, enabled, badge} = await chrome.storage.local.get({
-    enabled: true,
-    badge: true,
-    hosts: []
-  });
-  const active = enabled && (hosts.includes('*') || hosts.includes(hostname));
-  const state = await stateOf(tab.id);
-  const isApplied = state.applied;
-  const isRequired = !active && state.protected && !isApplied;
-  const text = badge ? (isApplied || isRequired ? 'R' : (active ? 'ON' : 'OFF')) : '';
-  chrome.action.setBadgeText({tabId: tab.id, text});
-  chrome.action.setBadgeBackgroundColor({tabId: tab.id, color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]});
-  let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', hostname);
-  if (isApplied) {
-    title += '\n' + i18n('action_title_reload_recommended');
-  }
-  else if (isRequired) {
-    title += '\n' + i18n('action_title_reload_required');
-  }
-  chrome.action.setTitle({tabId: tab.id, title});
-};
+  },
+  args: [key, method]
+}).catch(e => console.log('[Always Active]', 'Cannot prompt the page', e));
 
 const validate = async hosts => {
   if (hosts.length === 0) {
@@ -122,7 +91,27 @@ const validate = async hosts => {
   return message;
 };
 
-/* inject the registered scripts into the already-open document (no reload needed) */
+/* wildcard-aware list membership: matches exact hosts, '*', and '*.' patterns
+   the same way match patterns do ('*.example.com' covers example.com and
+   any-depth subdomains like www.example.com, a.b.example.com) */
+const matchesHost = (hostname, entry) => {
+  hostname = hostname.toLowerCase();
+  entry = entry.toLowerCase();
+  if (entry === '*') {
+    return true;
+  }
+  if (entry === hostname) {
+    return true;
+  }
+  if (entry.startsWith('*.')) {
+    const domain = entry.slice(2);
+    return hostname === domain || hostname.endsWith('.' + domain);
+  }
+  return false;
+};
+
+/* inject the registered scripts into the already-open document (no reload needed);
+   only runs in response to a user click */
 const applyNow = tabId => Promise.all([
   chrome.scripting.executeScript({
     target: {tabId, allFrames: true},
@@ -137,22 +126,6 @@ const applyNow = tabId => Promise.all([
     injectImmediately: true
   })
 ]);
-
-/* offer the page a reload dialog (ISOLATED world; the answer comes back as a message) */
-const askReload = (tabId, method, key, mark = false) => chrome.scripting.executeScript({
-  target: {tabId},
-  world: 'ISOLATED',
-  injectImmediately: true,
-  func: (method, key, mark) => {
-    if (mark) {
-      self.APPLIED_NOW = true;
-    }
-    if (window.confirm(chrome.i18n.getMessage(key) || '')) {
-      chrome.runtime.sendMessage({method});
-    }
-  },
-  args: [method, key, mark]
-}).catch(e => console.log('[Always Active]', 'Cannot prompt the page', e));
 
 /* enable or disable */
 const activate = () => {
@@ -208,6 +181,9 @@ const activate = () => {
 chrome.runtime.onStartup.addListener(activate);
 chrome.runtime.onInstalled.addListener(activate);
 chrome.storage.onChanged.addListener(ps => {
+  if (ps.badge) {
+    badge = ps.badge.newValue;
+  }
   if (ps.enabled || ps.hosts) {
     activate();
   }
@@ -216,113 +192,107 @@ activate.actions = [];
 
 /* action */
 chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
-  hosts: []
+  hosts: [],
+  enabled: true,
+  badge: true,
+  reload: false
 }, async prefs => {
-  if (tab.url?.startsWith('http')) {
-    const {hosts} = prefs;
+  if (!tab.url?.startsWith('http')) {
+    return notify(tab.id, 'Tab does not have a valid hostname');
+  }
 
-    const a = await chrome.scripting.executeScript({
-      target: {
-        tabId: tab.id,
-        allFrames: true
-      },
-      func: () => location.hostname,
-      injectImmediately: true
-    }).catch(e => [{
-      result: new URL(tab.url).hostname,
-      frameId: 0
-    }]);
+  const {enabled, badge, reload: legacy} = prefs;
+  let hosts = prefs.hosts.slice();
 
-    const hostnames = (a || []).map(o => o.result).filter((s, i, l) => s && l.indexOf(s) === i);
-    const top = a.find(o => o.frameId === 0).result;
+  const a = await chrome.scripting.executeScript({
+    target: {
+      tabId: tab.id,
+      allFrames: true
+    },
+    world: 'ISOLATED',
+    func: () => ({
+      hostname: location.hostname,
+      /* one marker on the ISOLATED world's global object; set by the
+         registered content script of this same extension in the same frame */
+      protected: self.PROTECTED === true
+    }),
+    injectImmediately: true
+  }).catch(e => [{
+    result: {
+      hostname: urlHost(tab.url),
+      protected: false
+    },
+    frameId: 0
+  }]);
 
-    if (top) {
-      const n = hosts.indexOf(top);
-      let message = '';
-      // removing from the list
-      if (n >= 0) {
-        message = 'Removed the following hostnames:\n\n' + hostnames.join(', ') + '\n';
-        // remove all hostnames from the list
-        for (const hostname of hostnames) {
-          const n = hosts.indexOf(hostname);
-          if (n >= 0) {
-            hosts.splice(n, 1);
-          }
-        }
-      }
-      // adding to the list
-      else {
-        message = 'Added the following hostnames:\n' + hostnames.join(', ') + '\n';
-        for (const hostname of hostnames) {
-          const n = hosts.indexOf(hostname);
-          if (n < 0) {
-            hosts.push(hostname);
-          }
-        }
-      }
-      validate(hosts).then(async error => {
-        if (error) {
-          notify(tab.id, error);
-        }
-        else {
-          const active = hosts.includes('*') || hosts.includes(top);
-          const {badge} = await chrome.storage.local.get({badge: true});
-          const {reload: legacy} = await chrome.storage.local.get({reload: false});
+  const hostnames = (a || []).map(o => o.result?.hostname).filter((s, i, l) => s && l.indexOf(s) === i);
+  const topEntry = (a || []).find(o => o.frameId === 0) || a[0] || {};
+  const top = topEntry.result?.hostname;
+  if (!top) {
+    return notify(tab.id, 'Cannot find the hostname of this tab');
+  }
+  const topProtected = topEntry.result?.protected === true;
 
-          const paint = async f => {
-            // immediate non-visual feedback in the button's accessible label
-            const text = badge ? (f ? 'R' : (active ? 'ON' : 'OFF')) : '';
-            chrome.action.setBadgeText({tabId: tab.id, text});
-            chrome.action.setBadgeBackgroundColor({
-              tabId: tab.id,
-              color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]
-            });
-            let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', top);
-            if (f === 'required') {
-              title += '\n' + i18n('action_title_reload_required');
-            }
-            else if (f === 'recommended') {
-              title += '\n' + i18n('action_title_reload_recommended');
-            }
-            if (hosts.includes('*')) {
-              title += '\n' + i18n('title_star_note');
-            }
-            chrome.action.setTitle({tabId: tab.id, title});
-          };
-
-          if (legacy) { // previous behavior; reload destroys the unsaved state
-            activate.actions.push(() => chrome.tabs.reload(tab.id));
-          }
-          else if (active) {
-            try {
-              await applyNow(tab.id);
-              paint('recommended');
-              askReload(tab.id, 'reload-recommended', 'prompt_reload_recommended', true);
-            }
-            catch (e) {
-              console.log('[Always Active]', 'Immediate injection failed; reloading the tab', e);
-              paint();
-              chrome.tabs.reload(tab.id);
-            }
-          }
-          else { // the host is removed; the open page keeps its protection until it is reloaded
-            const {protected: isProtected} = await stateOf(tab.id);
-            paint(isProtected ? 'required' : undefined);
-            if (isProtected) {
-              askReload(tab.id, 'reload-required', 'prompt_reload_required');
-            }
-          }
-          chrome.storage.local.set({hosts}); // triggers activate(); drains activate.actions
-        }
-      });
-    }
-    else {
-      notify(tab.id, 'Cannot find the hostname of this tab');
+  // removing from the list; both a listed host (covered) and a protected page
+  // (the list entry might be a wildcard like *.example.com, or the doc is an
+  // old session-restored tab) count as "on"
+  if (topProtected || hosts.some(h => matchesHost(top, h))) {
+    for (const hostname of hostnames) {
+      hosts = hosts.filter(h => !matchesHost(hostname, h));
     }
   }
+  // adding to the list; skip hosts already covered by an existing entry
   else {
-    notify(tab.id, 'Tab does not have a valid hostname');
+    for (const hostname of hostnames) {
+      if (!hosts.some(h => matchesHost(hostname, h))) {
+        hosts.push(hostname);
+      }
+    }
   }
+
+  const active = enabled && hosts.some(h => matchesHost(top, h));
+  let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', top);
+  if (hosts.includes('*')) {
+    title += '\n' + i18n('title_star_note');
+  }
+
+  validate(hosts).then(async error => {
+    if (error) {
+      return notify(tab.id, error);
+    }
+
+    if (legacy) { // previous behavior; reload destroys the unsaved state
+      activate.actions.push(() => chrome.tabs.reload(tab.id));
+      chrome.storage.local.set({hosts}); // triggers activate(); drains activate.actions
+      return;
+    }
+
+    chrome.storage.local.set({hosts}); // triggers activate();
+
+    if (active) {
+      try {
+        await applyNow(tab.id);
+      }
+      catch (e) {
+        console.error('[Always Active]', 'Immediate injection failed; reloading the tab', e);
+        paint(tab.id, badge ? 'ON' : '', COLORS.on, title);
+        chrome.tabs.reload(tab.id);
+        return;
+      }
+      /* the script is running now; it has already reported its ON state */
+      paint(tab.id, badge ? 'R' : '', COLORS.on, title + '\n' + i18n('action_title_reload_recommended'));
+      askReload(tab.id, 'prompt_reload_recommended', 'reload-recommended');
+    }
+    else { // the host is removed; the open page keeps its protection until it is reloaded
+      if (topProtected) {
+        paint(tab.id, badge ? 'R' : '', COLORS.off, title + '\n' + i18n('action_title_reload_required'));
+        askReload(tab.id, 'prompt_reload_required', 'reload-required');
+      }
+      else {
+        paint(tab.id, badge ? 'OFF' : '', COLORS.off, title);
+      }
+    }
+  });
 }));
 
 /* messaging */
@@ -334,19 +304,33 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
     log('page visibility state is changed', sender.tab);
   }
   else if (request.method === 'set-icon') {
-    chrome.action.setIcon({
-      tabId: sender.tab.id,
-      path: {
-        '16': '/data/icons/16.png',
-        '32': '/data/icons/32.png',
-        '48': '/data/icons/48.png'
+    if (sender.tab?.id) {
+      chrome.action.setIcon({
+        tabId: sender.tab.id,
+        path: {
+          '16': '/data/icons/16.png',
+          '32': '/data/icons/32.png',
+          '48': '/data/icons/48.png'
+        }
+      });
+      const hostname = request.hostname || urlHost(sender.url) || '';
+      if (hostname) {
+        paint(sender.tab.id, badge ? 'ON' : '', COLORS.on, i18n('action_title_enabled', hostname));
       }
-    });
-    setState(sender.tab);
+    }
   }
   else if (request.method === 'reload-required' || request.method === 'reload-recommended') {
     log('reload request from', sender.tab);
     if (sender.tab?.id) {
+      if (request.method === 'reload-required') {
+        /* paint the post-reload state before starting the reload */
+        chrome.storage.local.get({badge: true}, ({badge}) => paint(
+          sender.tab.id,
+          badge ? 'OFF' : '',
+          COLORS.off,
+          i18n('action_title_disabled', request.hostname || urlHost(sender.url) || '')
+        ));
+      }
       chrome.tabs.reload(sender.tab.id);
     }
   }

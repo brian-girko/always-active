@@ -176,6 +176,123 @@
     }
   }, true);
 
+  /* fullscreen protection (optional): keeps the page believing it is still fullscreen
+     after the browser force-exits fullscreen on a hidden tab. The option is off by default;
+     until it is enabled, the script touches nothing at all (no listeners, no overwrites).
+     Once enabled, while the page is visible the fullscreen events pass through and only
+     the real state is recorded; while the page is hidden, the events are blocked and the
+     recorded state is spoofed. Toggling the pref installs or fully removes the protection
+     on the fly. */
+  {
+    /* original descriptors (captured before any overwrite; invisible to the page) */
+    const fele = Object.getOwnPropertyDescriptor(Document.prototype, 'fullscreenElement');
+    const wfele = Object.getOwnPropertyDescriptor(Document.prototype, 'webkitFullscreenElement');
+    const target = fele || wfele;
+
+    /* the recorded state (persists across the hidden period) */
+    const real = {
+      element: null
+    };
+    const realElement = () => {
+      try {
+        return target ? target.get.call(document) : null;
+      }
+      catch (e) {
+        return null;
+      }
+    };
+    const grab = () => {
+      real.element = realElement();
+    };
+
+    const protectedState = () => port.dataset.enabled === 'true' &&
+      port.dataset.fullscreen !== 'false' &&
+      port.dataset.hidden === 'true';
+
+    const element = () => protectedState() ? real.element : realElement();
+    const bool = () => !!element();
+
+    const onfullscreen = e => {
+      /* always track the real state; block the page's handlers only while hidden */
+      grab();
+      if (protectedState()) {
+        return block(e);
+      }
+    };
+    const onfullscreenerror = e => {
+      if (protectedState()) {
+        return block(e);
+      }
+    };
+
+    const install = () => {
+      grab();
+      Object.defineProperty(document, 'fullscreenElement', {
+        configurable: true,
+        get: element
+      });
+      Object.defineProperty(document, 'webkitFullscreenElement', {
+        configurable: true,
+        get: element
+      });
+      Object.defineProperty(document, 'fullscreen', {
+        configurable: true,
+        get: bool
+      });
+      Object.defineProperty(document, 'webkitIsFullScreen', {
+        configurable: true,
+        get: bool
+      });
+      document.addEventListener('fullscreenchange', onfullscreen, true);
+      document.addEventListener('webkitfullscreenchange', onfullscreen, true);
+      window.addEventListener('fullscreenchange', onfullscreen, true);
+      window.addEventListener('webkitfullscreenchange', onfullscreen, true);
+      document.addEventListener('fullscreenerror', onfullscreenerror, true);
+      document.addEventListener('webkitfullscreenerror', onfullscreenerror, true);
+      window.addEventListener('fullscreenerror', onfullscreenerror, true);
+      window.addEventListener('webkitfullscreenerror', onfullscreenerror, true);
+
+      install.active = true;
+    };
+    const uninstall = () => {
+      document.removeEventListener('fullscreenchange', onfullscreen, true);
+      document.removeEventListener('webkitfullscreenchange', onfullscreen, true);
+      window.removeEventListener('fullscreenchange', onfullscreen, true);
+      window.removeEventListener('webkitfullscreenchange', onfullscreen, true);
+      document.removeEventListener('fullscreenerror', onfullscreenerror, true);
+      document.removeEventListener('webkitfullscreenerror', onfullscreenerror, true);
+      window.removeEventListener('fullscreenerror', onfullscreenerror, true);
+      window.removeEventListener('webkitfullscreenerror', onfullscreenerror, true);
+      for (const prop of ['fullscreenElement', 'webkitFullscreenElement', 'fullscreen', 'webkitIsFullScreen']) {
+        delete document[prop];
+      }
+      real.element = null;
+
+      install.active = false;
+    };
+
+    /* the decision is delivered by the ISOLATED world through the port element;
+       until it arrives (or unless it is "true"), nothing is installed */
+    const toggle = () => {
+      if (port.dataset.fullscreen === 'true' && !install.active) {
+        install();
+      }
+      else if (port.dataset.fullscreen !== 'true' && install.active) {
+        uninstall();
+      }
+    };
+    const check = () => {
+      toggle();
+      if (port.dataset.fullscreen === undefined) {
+        setTimeout(check, 4);
+      }
+    };
+    check();
+
+    /* live install/uninstall when the pref (or a per-host policy) changes */
+    port.addEventListener('fs', toggle);
+  }
+
   /* requestAnimationFrame */
   let lastTime = 0;
   window.requestAnimationFrame = new Proxy(window.requestAnimationFrame, {

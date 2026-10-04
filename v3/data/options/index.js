@@ -29,6 +29,7 @@ chrome.storage.local.get({
   'redirect': true,
   'visibility': true,
   'pointercapture': true,
+  'fullscreen': false,
   'mouseleave': true,
   'mouseout': true,
   'log': false,
@@ -44,6 +45,7 @@ chrome.storage.local.get({
   document.getElementById('redirect').checked = prefs.redirect;
   document.getElementById('visibility').checked = prefs.visibility;
   document.getElementById('pointercapture').checked = prefs.pointercapture;
+  document.getElementById('fullscreen').checked = prefs.fullscreen;
   document.getElementById('blur').checked = prefs.blur;
   document.getElementById('mouseleave').checked = prefs.mouseleave;
   document.getElementById('mouseout').checked = prefs.mouseout;
@@ -71,6 +73,7 @@ document.getElementById('save').addEventListener('click', async () => {
     'mouseout': document.getElementById('mouseout').checked,
     'visibility': document.getElementById('visibility').checked,
     'pointercapture': document.getElementById('pointercapture').checked,
+    'fullscreen': document.getElementById('fullscreen').checked,
     'focus': document.getElementById('focus').checked,
     'redirect': document.getElementById('redirect').checked,
     'log': document.getElementById('log').checked,

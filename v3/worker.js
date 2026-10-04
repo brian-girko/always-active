@@ -20,6 +20,26 @@ const notify = async (tabId, title, symbol = '!') => {
   });
 };
 
+/* determination of the current protection state from the page itself.
+   All markers live on the ISOLATED world's global object: per document, invisible to the page, and gone after a reload. */
+const stateOf = async tabId => {
+  try {
+    const [{result} = {}] = await chrome.scripting.executeScript({
+      target: {tabId},
+      world: 'ISOLATED',
+      injectImmediately: true,
+      func: () => ({
+        protected: !!self.PROTECTED,
+        applied: !!self.APPLIED_NOW
+      })
+    });
+    return result || {};
+  }
+  catch (e) {
+    return {};
+  }
+};
+
 /* non-visual state indication (accessibility) */
 const setState = async tab => {
   if (!tab?.id) {
@@ -57,10 +77,20 @@ const setState = async tab => {
     hosts: []
   });
   const active = enabled && (hosts.includes('*') || hosts.includes(hostname));
-  const text = badge ? (active ? 'ON' : 'OFF') : '';
+  const state = await stateOf(tab.id);
+  const isApplied = state.applied;
+  const isRequired = !active && state.protected && !isApplied;
+  const text = badge ? (isApplied || isRequired ? 'R' : (active ? 'ON' : 'OFF')) : '';
   chrome.action.setBadgeText({tabId: tab.id, text});
   chrome.action.setBadgeBackgroundColor({tabId: tab.id, color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]});
-  chrome.action.setTitle({tabId: tab.id, title: i18n(active ? 'action_title_enabled' : 'action_title_disabled', hostname)});
+  let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', hostname);
+  if (isApplied) {
+    title += '\n' + i18n('action_title_reload_recommended');
+  }
+  else if (isRequired) {
+    title += '\n' + i18n('action_title_reload_required');
+  }
+  chrome.action.setTitle({tabId: tab.id, title});
 };
 
 const validate = async hosts => {
@@ -91,6 +121,38 @@ const validate = async hosts => {
 
   return message;
 };
+
+/* inject the registered scripts into the already-open document (no reload needed) */
+const applyNow = tabId => Promise.all([
+  chrome.scripting.executeScript({
+    target: {tabId, allFrames: true},
+    files: ['data/inject/main.js'],
+    world: 'MAIN',
+    injectImmediately: true
+  }),
+  chrome.scripting.executeScript({
+    target: {tabId, allFrames: true},
+    files: ['data/inject/isolated.js'],
+    world: 'ISOLATED',
+    injectImmediately: true
+  })
+]);
+
+/* offer the page a reload dialog (ISOLATED world; the answer comes back as a message) */
+const askReload = (tabId, method, key, mark = false) => chrome.scripting.executeScript({
+  target: {tabId},
+  world: 'ISOLATED',
+  injectImmediately: true,
+  func: (method, key, mark) => {
+    if (mark) {
+      self.APPLIED_NOW = true;
+    }
+    if (window.confirm(chrome.i18n.getMessage(key) || '')) {
+      chrome.runtime.sendMessage({method});
+    }
+  },
+  args: [method, key, mark]
+}).catch(e => console.log('[Always Active]', 'Cannot prompt the page', e));
 
 /* enable or disable */
 const activate = () => {
@@ -205,19 +267,52 @@ chrome.action.onClicked.addListener(tab => chrome.storage.local.get({
         else {
           const active = hosts.includes('*') || hosts.includes(top);
           const {badge} = await chrome.storage.local.get({badge: true});
-          // immediate non-visual feedback in the button's accessible label
-          chrome.action.setBadgeText({tabId: tab.id, text: badge ? (active ? 'ON' : 'OFF') : ''});
-          chrome.action.setBadgeBackgroundColor({
-            tabId: tab.id,
-            color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]
-          });
-          let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', top);
-          if (hosts.includes('*')) {
-            title += '\n' + i18n('title_star_note');
+          const {reload: legacy} = await chrome.storage.local.get({reload: false});
+
+          const paint = async f => {
+            // immediate non-visual feedback in the button's accessible label
+            const text = badge ? (f ? 'R' : (active ? 'ON' : 'OFF')) : '';
+            chrome.action.setBadgeText({tabId: tab.id, text});
+            chrome.action.setBadgeBackgroundColor({
+              tabId: tab.id,
+              color: active ? [27, 94, 32, 255] : [176, 24, 24, 255]
+            });
+            let title = i18n(active ? 'action_title_enabled' : 'action_title_disabled', top);
+            if (f === 'required') {
+              title += '\n' + i18n('action_title_reload_required');
+            }
+            else if (f === 'recommended') {
+              title += '\n' + i18n('action_title_reload_recommended');
+            }
+            if (hosts.includes('*')) {
+              title += '\n' + i18n('title_star_note');
+            }
+            chrome.action.setTitle({tabId: tab.id, title});
+          };
+
+          if (legacy) { // previous behavior; reload destroys the unsaved state
+            activate.actions.push(() => chrome.tabs.reload(tab.id));
           }
-          chrome.action.setTitle({tabId: tab.id, title});
-          activate.actions.push(() => chrome.tabs.reload(tab.id));
-          chrome.storage.local.set({hosts});
+          else if (active) {
+            try {
+              await applyNow(tab.id);
+              paint('recommended');
+              askReload(tab.id, 'reload-recommended', 'prompt_reload_recommended', true);
+            }
+            catch (e) {
+              console.log('[Always Active]', 'Immediate injection failed; reloading the tab', e);
+              paint();
+              chrome.tabs.reload(tab.id);
+            }
+          }
+          else { // the host is removed; the open page keeps its protection until it is reloaded
+            const {protected: isProtected} = await stateOf(tab.id);
+            paint(isProtected ? 'required' : undefined);
+            if (isProtected) {
+              askReload(tab.id, 'reload-required', 'prompt_reload_required');
+            }
+          }
+          chrome.storage.local.set({hosts}); // triggers activate(); drains activate.actions
         }
       });
     }
@@ -248,6 +343,12 @@ chrome.runtime.onMessage.addListener((request, sender, response) => {
       }
     });
     setState(sender.tab);
+  }
+  else if (request.method === 'reload-required' || request.method === 'reload-recommended') {
+    log('reload request from', sender.tab);
+    if (sender.tab?.id) {
+      chrome.tabs.reload(sender.tab.id);
+    }
   }
   else if (request.method === 'validate') {
     validate(request.hosts).then(message => response(message));

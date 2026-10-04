@@ -34,6 +34,7 @@ chrome.storage.local.get({
   'log': false,
   'faqs': true,
   'badge': true,
+  'reload': false,
   'policies': null,
   'hosts': []
 }, prefs => {
@@ -49,6 +50,7 @@ chrome.storage.local.get({
   document.getElementById('log').checked = prefs.log;
   document.getElementById('faqs').checked = prefs.faqs;
   document.getElementById('badge').checked = prefs.badge;
+  document.getElementById('reload').checked = prefs.reload;
   document.getElementById('policies').value = prefs.policies ? JSON.stringify(prefs.policies, null, '  ') : '';
   hostsBox.value = prefs.hosts.join(', ');
   syncAllSites();
@@ -73,7 +75,8 @@ document.getElementById('save').addEventListener('click', async () => {
     'redirect': document.getElementById('redirect').checked,
     'log': document.getElementById('log').checked,
     'faqs': document.getElementById('faqs').checked,
-    'badge': document.getElementById('badge').checked
+    'badge': document.getElementById('badge').checked,
+    'reload': document.getElementById('reload').checked
   };
 
   let policies = null;

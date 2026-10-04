@@ -12,7 +12,7 @@
     "*://*/*"
   ],
   "action": {
-    "default_title": "Toggle whether the current website stays active while its tab is in the background. The button announces the current state: the badge shows ON or OFF, and the button label (title) names the website and whether it is enabled. The page will automatically reload after you make changes.",
+    "default_title": "Toggle whether the current website stays active while its tab is in the background. The button announces the current state: the badge shows ON or OFF (R when a reload is recommended or required), and the button label (title) names the website and whether it is enabled. Clicking applies the change immediately to the open tab when possible.",
     "default_icon": {
       "16": "data/icons/disabled/16.png",
       "32": "data/icons/disabled/32.png",

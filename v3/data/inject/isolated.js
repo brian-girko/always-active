@@ -6,6 +6,9 @@
   https://oncode-frontend.github.io/tab_detector/
 */
 
+/* one marker on the ISOLATED world's global object (per document; invisible to the page) */
+self.PROTECTED = true;
+
 let port;
 try {
   port = document.getElementById('lwys-ctv-port');

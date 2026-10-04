@@ -21,7 +21,21 @@
   "action_title_unknown": {
     "message": "This tab cannot be handled by this extension. Open a regular http(s) website, such as youtube.com, and click again."
   },
+  "action_title_reload_recommended": {
+    "message": "The changes have been applied to the open tab immediately; reloading the page is recommended to get the full protection.",
+    "placeholders": {}
+  },
+  "action_title_reload_required": {
+    "message": "The page is still protected, but reloading the page is required to apply the change.",
+    "placeholders": {}
+  },
   "title_star_note": {
     "message": "The \"*\" wildcard in your host list enables this extension on all websites. To change this, visit the options page."
+  },
+  "prompt_reload_recommended": {
+    "message": "The changes have been applied immediately. Reload the page to get the full protection?\n\nIf you skip this, some page-level protections may still be missing. You can reload at any time yourself; the R badge is a reminder until then."
+  },
+  "prompt_reload_required": {
+    "message": "The tab is still protected, but this host has been removed from the list. Would you like to refresh to apply changes?"
   }
 }
